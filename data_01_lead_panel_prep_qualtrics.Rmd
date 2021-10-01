@@ -1,0 +1,348 @@
+---
+title: "Prep LEAD Panel votes from Qualtrics to be added to FM Pro"
+date: "2020-10-16"
+---
+
+On 2020-02-26 we began doing the LEAD panel reviews directly in FM Pro. Prior to that, we were doing them in Qualtrics. In this file, we prepare the old Qualtrics data to be uploaded into FM Pro.
+
+```{r}
+library(dplyr)
+library(haven)
+library(lubridate)
+library(readr)
+```
+
+# Import Qualtrics data
+
+```{r}
+lead <- read_spss("/Users/bradcannell/Desktop/DETECT+Lead+Panel+Assessment_October+16,+2020_14.43.sav")
+```
+
+# Align column names
+
+Select columns that will be uploaded to FM Pro and change names to match the FM Pro names
+
+```{r}
+lead <- lead %>% 
+  select(
+    xCreatedTimestamp = StartDate, xModifiedTimestamp = RecordedDate,
+    CaseID = MedstarID, AssessmentType, PhysicalAbuse = Physical,
+    SexualAbuse = Sexual, EmotionalPsychoAbuse = Emotional,
+    Neglect, Abandonment, FinancialExploitation = Financial,
+    SelfNeglect, Comments,
+    
+    # Also need these for further data cleaning and computed variables
+    IPAddress, RecipientLastName, RecipientFirstName
+  )
+```
+
+# Drop empty rows
+
+There are 3 rows that are missing all the way across. Go ahead and drop them.
+
+```{r}
+lead <- lead %>% 
+  filter(!CaseID == "")
+```
+
+# Create xAssessmentMonth and xAssessmentYear
+
+These are the year and month before the LEAD Panel meeting. For example, if the LEAD panel was in February 2020, then the xAssessmentMonth and xAssessmentYear would be January 2020. So, it's the month the cases we are assessing are from.
+
+```{r}
+lead <- lead %>% 
+  mutate(
+    back_1 = xCreatedTimestamp - months(1),
+    xAssessmentMonth = factor(month(back_1), 1:12, month.name),
+    xAssessmentYear = year(back_1)
+  ) %>% 
+  select(-back_1)
+```
+
+# Fill-in missing LEAD Panel member names
+
+There are some rows that are missing the name of the panelist. This was caused by an error in the code we used in Qualtrics to have them go back to the beginning of the survey and fill it out for the next case. However, we can impute the LEAD panel member name by matching their name and IP address from other rows.
+
+```{r}
+lead <- lead %>% 
+  mutate(
+    across(
+      .cols = c(RecipientLastName, RecipientFirstName),
+      .fns = ~ if_else(.x == "", NA_character_, .x)
+    )
+  ) %>% 
+  group_by(IPAddress, xAssessmentMonth) %>% 
+  tidyr::fill(RecipientLastName, RecipientFirstName) %>% 
+  ungroup() %>% 
+  select(-IPAddress)
+```
+
+# Create PanelistName, xUsername, xCreatedBy, and xModifiedBy columns
+
+```{r}
+lead <- lead %>% 
+  mutate(
+    PanelistName = paste(RecipientFirstName, RecipientLastName, sep = " "),
+    xUsername = case_when(
+      RecipientLastName == "Rolfe"   ~ "jrolfe",
+      RecipientLastName == "Knebl"   ~ "jknebl",
+      RecipientLastName == "Reuter"  ~ "kreuter",
+      RecipientLastName == "Burnett" ~ "uthouston\\jburnett",
+      RecipientLastName == "Large"   ~ "slarge",
+      RecipientLastName == "Fant"    ~ "safant",
+    ),
+    xCreatedBy = xUsername,
+    xModifiedBy = xUsername
+  ) %>% 
+  select(-RecipientFirstName, -RecipientLastName)
+```
+
+# Add value labels to AssessmentType
+
+```{r}
+lead <- lead %>% 
+  mutate(
+    AssessmentType = case_when(
+      AssessmentType == 1 ~ "Initial assessment",
+      AssessmentType == 2 ~ "Secondary assessment"
+    )
+  )
+```
+
+# Create xcAssessmentScreened column
+
+Did a manual check, there were no missing values in any of the abuse type questions.
+
+```{r}
+lead <- lead %>% 
+  rowwise() %>% 
+  mutate(
+    xcAssessmentScreened = sum(
+      PhysicalAbuse, SexualAbuse, EmotionalPsychoAbuse, Neglect, Abandonment,
+      FinancialExploitation, SelfNeglect
+    ) > 0,
+    xcAssessmentScreened = if_else(
+      xcAssessmentScreened == TRUE,
+      "Positive", "Negative"
+    )
+  ) %>% 
+  ungroup()
+```
+
+# Add value labels to abuse columns
+
+```{r}
+lead <- lead %>% 
+  mutate(
+    across(
+      .cols = PhysicalAbuse:SelfNeglect,
+      .fns = ~ case_when(
+        .x == 0 ~ "No",
+        .x == 1 ~ "Yes"
+      )
+    )
+  )
+```
+
+# Reorder variables to match FM Pro
+
+```{r}
+lead <- lead %>% 
+  select(
+    xCreatedBy, xCreatedTimestamp, xModifiedBy, xModifiedTimestamp, 
+    PanelistName, xUsername, CaseID, AssessmentType, PhysicalAbuse:Comments,
+    xcAssessmentScreened, xAssessmentMonth, xAssessmentYear
+  )
+```
+
+# Clean AssessmentType
+
+There should be one initial assessment for each combination of CaseID and xUsername. There should be no more than one initial assessment for each combination of CaseID and xUsername.
+
+One shortcoming of the Qualtrics system was that the LEAD panelist had to manually select whether the review they were completing was an initial assessment (alone) or a secondary assessment (at the LEAD panel meeting). There are several occasions where they selected the wrong option. If the record modified datetime is during the LEAD panel meeting, then we assume that the panelist meant to select secondary assessment.
+
+LEAD panel meeting days during the time frame of this data:
+2019-10-23
+2019-11-27
+2019-12-18
+2020-01-29
+
+However, there are also some cases where initial assessment is selected twice, but the second time is before the LEAD panel meeting occurred. In those cases, we will assume that the panelist truly completed two initial assessments. We will keep the second assessment.
+
+## Add a master row number
+
+Below, we will need to manipulate and drop some rows from the data set. To do that without using caseIDs and usernames, we will create a unique identifier for each row in the data frame.
+
+```{r}
+lead <- lead %>% mutate(row = row_number())
+```
+
+## One initial assessment 
+
+Does every combination of CaseID and xUsername have at least one initial assessment? Results hidden to protect patient privacy.
+
+```{r eval=FALSE}
+# For data checking
+# lead %>%
+#   count(CaseID, AssessmentType) %>%
+#   filter(AssessmentType == "Initial assessment" & n != 5)
+```
+
+There are 53 unique case IDs. All but 4 have an initial assessment from all five panelists. I did some manual checks. All four were missing an initial assessment from the same panelist at the January meeting. That person had a technical issue and the data is lost.
+
+Additionally, 5 Case IDs have 6 initial assessments. We will explore this further below.
+
+## No more than one initial assessment
+
+There should be no more than one initial assessment for each combination of CaseID and xUsername.
+
+Let's remove duplicate initial assessments for the 5 Case IDs with more than 5 initial assessments.
+
+Review records manually and adjust as needed.
+
+```{r}
+lead_check <- lead %>% 
+  group_by(CaseID, xUsername, AssessmentType) %>% 
+  mutate(n_rows = row_number()) %>% 
+  arrange(CaseID, xUsername, xModifiedTimestamp) %>% 
+  filter(max(n_rows) == 2) %>% 
+  select(
+    CaseID, xUsername, AssessmentType, xModifiedTimestamp, n_rows, row, 
+    PhysicalAbuse:SelfNeglect
+  ) %>% 
+  ungroup()
+```
+
+```{r}
+lead <- lead %>% 
+  
+  # Change assessment type per protocol
+  mutate(
+    AssessmentType = case_when(
+      # Completed during 2019-11-27 LEAD panel meeting. Should be a second
+      # assessment.
+      row == 95 ~ "Secondary assessment",
+      # Completed during 2019-10-23 LEAD panel meeting. Should be a second
+      # assessment.
+      row == 10 ~ "Secondary assessment",
+      # The remaining rows should retain their assessment type value for now.
+      TRUE ~ AssessmentType
+    )
+  ) %>%
+  
+  # Drop selected rows per protocol
+  filter(
+    # Filled out 40 seconds after first row. Not on a meeting day. 
+    # No difference in assessment of abuse. We will keep the second row per 
+    # the protocol listed above.
+    row != 325,
+    # Filled out 1 day after first row. Not on a meeting day. 
+    # Two forms of abuse switch from Yes in row 1 to No in row 2. 
+    # We will keep the second row per the protocol listed above.
+    row != 19,
+    # Filled out 1 day after first row. Not on a meeting day. 
+    # One form of abuse switch from Yes in row 1 to No in row 2. 
+    # We will keep the second row per the protocol listed above.
+    row != 18
+  )
+```
+
+```{r}
+rm(lead_check)
+```
+
+## Five secondary assessments
+
+Any CaseID that has one secondary assessment should have five secondary assessments.
+
+How many CaseIDs have at least one secondary asessment?
+
+```{r}
+lead %>% 
+  filter(AssessmentType == "Secondary assessment") %>% 
+  group_by(CaseID) %>% 
+  filter(row_number() == 1) %>% 
+  nrow()
+```
+
+There 53 unique case IDs. 23 (43%) have at least one secondary assessment.
+
+```{r}
+# For data checking
+lead %>%
+  filter(AssessmentType == "Secondary assessment") %>%  
+  count(CaseID) %>% 
+  count(assessments = n) %>% 
+  mutate(
+    cumsum  = cumsum(n),
+    percent = (n / max(cumsum)) * 100
+  )
+```
+There 53 unique case IDs. 23 (43%) have at least one secondary assessment. Any case ID with one secondary assessment should have 5 secondary assessments. However, 1 case has only 3 secondary assessments, 17 cases have only 4 secondary assessments., and 1 case has 6 secondary assessments.
+
+Below, I'm going to do some manual checks.
+
+```{r}
+# For data checking
+# lead_check <- lead %>% 
+#   filter(AssessmentType == "Secondary assessment") %>% 
+#   group_by(CaseID) %>% 
+#   arrange(CaseID) %>% 
+#   mutate(row = row_number()) %>% 
+#   filter(max(row) == 6) # 3, then 4, then 6
+```
+
+
+All but 4 have an initial assessment from all five panelists. I did some manual checks. All four were missing an initial assessment from the same panelist at the January meeting. That person had a technical issue and the data is lost.
+
+The one case with 3 secondary assessments was from 2020-11-27. The missing panelists were kr and jr. All other secondary assessments were negative. kr's initial assessment was negative. jr's initial assessment was positive. 
+
+There were 17 cases with 4 secondary assessments. 
+
+Number of CaseID's (out of 17) with 4 secondary assessments by LEAD panel date:
+  * 2019-10-23 = 0
+  * 2019-11-27 = 11
+  * 2019-12-18 = 0
+  * 2020-01-29 = 6
+  
+Number of times (out of 17) each LEAD panel member is missing a secondary assessment:
+ * sl = 0
+ * kr = 6
+ * jb = 0
+ * jk = 0
+ * jr = 11
+ * sf = 0
+ 
+So, there were two panelists that had trouble completing secondary assessments for some reason on two separate days. There really isn't much we can do to recover that data at this point.
+
+Finally, 1 Case had 6 secondary assessments. One LEAD panel member (jr) filled out two secondary assessments for the case. There was no difference in the assessment of abuse between rows. We will keep the second row per the protocol listed above.
+
+```{r}
+lead <- lead %>% filter(row != 1)
+```
+
+```{r}
+rm(lead_check)
+```
+
+# Reorder variables to match FM Pro
+
+```{r}
+lead <- lead %>% 
+  select(
+    xCreatedBy, xCreatedTimestamp, xModifiedBy, xModifiedTimestamp, 
+    PanelistName, xUsername, CaseID, AssessmentType, PhysicalAbuse:Comments,
+    xcAssessmentScreened, xAssessmentMonth, xAssessmentYear
+  )
+```
+
+## Export
+
+```{r}
+write_csv(lead, "/Users/bradcannell/Desktop/lead_qualtrics.csv")
+```
+
+
+
+
+

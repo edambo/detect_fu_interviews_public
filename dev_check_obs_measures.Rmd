@@ -1,0 +1,128 @@
+---
+title: "Checking for missing observational data - Currently in development"
+date: "2021-02-08"
+---
+
+Data collected on the observational measures layout in FM Pro during the F/U interviews. 
+
+2021-02-08: Downloaded this to check for incomplete. If this is still useful/necessary then we will want to add this code back to the larger dashboarding process.
+
+```{r}
+library(dplyr)
+library(DBI)
+library(odbc)
+library(keyring)
+```
+
+# Import the observational measures data
+
+```{r}
+con <- dbConnect(
+  odbc(),
+  driver   = "/Library/ODBC/FileMaker ODBC.bundle/Contents/MacOS/FileMaker ODBC",
+  server   = "spsqlapwv003.sph.uthouston.edu",
+  database = "DETECT",
+  uid      = key_list("detect_fm_db_readonly")[1,2],
+  pwd      = key_get("detect_fm_db_readonly")
+)
+```
+
+```{r}
+walk(
+  # List of tables to import
+  c("ObservationalMeasures"),
+  
+  # Import and add data frames to the global environment
+  function(x) {
+    df <- dbReadTable(con, x)
+    # Convert camel case to snake case for df name
+    nm <- str_replace_all(x, "(\\B)([A-Z])", "_\\2")
+    nm <- str_to_lower(nm)
+    assign(nm, df, envir = .GlobalEnv)
+  }
+)
+```
+
+```{r}
+dbDisconnect(con)
+rm(con)
+```
+
+I think we can just acknowledge that the completion of this section was a big problem prior to changing up the format.
+
+For now, I just want to start by looking at missingness in the new format. According to the Google important dates sheet (https://docs.google.com/spreadsheets/d/1U9ZvrRVrIPd6RY3Mry5YczTwO-RhHd3E8-afLudwSjY/edit#gid=0), we started using the new version of the observtional measures layout on 2020-08-17.
+
+```{r}
+date_new_layout <- as.POSIXct("2020-08-17 00:00:00")
+om_new <- observational_measures %>% 
+  filter(xCreatedTimestamp >= date_new_layout) %>% 
+  # Keep only the columns of interest. Drop columns from previous version of
+  # the layout.
+  select(
+    xCreatedBy, xCreatedTimestamp, MedstarID, UnusualOdor:HoardingMedications, 
+    AtPhysical:AtSelfWhy
+  )
+```
+
+# Count the number of incomplete detect items
+
+```{r}
+om_new %>% 
+  select(UnusualOdor:HoardingMedications) %>% 
+  rowwise() %>%
+  mutate(n_miss = sum(is.na(c_across(UnusualOdor:HoardingMedications)))) %>% 
+  ungroup() %>% 
+  filter(n_miss > 0)
+```
+
+There doesn't appear to be a big problem with missing data in the DETECT items (7 out of 134 rows as of 2021-02-08).
+
+# Count the number of incomplete medic EM assessment items
+
+```{r}
+om_new %>% 
+  select(starts_with("AT") & !ends_with("Why")) %>% 
+  rowwise() %>%
+  mutate(n_miss = sum(is.na(c_across()))) %>% 
+  ungroup() %>% 
+  filter(n_miss > 0)
+```
+
+Count the number of incomplete medic EM assessment comments
+
+```{r}
+om_new %>% 
+  select(ends_with("Why")) %>% 
+  rowwise() %>%
+  mutate(n_miss = sum(is.na(c_across()))) %>% 
+  ungroup() %>% 
+  filter(n_miss > 0)
+```
+
+There are comments missing in some cases, but that is to be expected. Except when there is a yes. Let's see if there are any yes's and if there are comments for those yes's
+
+```{r}
+purrr::map2_df(
+  .x = select(om_new, starts_with("AT") & !ends_with("Why")) %>% names() %>% syms(),
+  .y = select(om_new, ends_with("Why")) %>% names() %>% syms(),
+  .f = function(x, y) {
+    om_new %>% 
+      filter({{ x }} == "Yes") %>% 
+      select(MedstarID, {{ x }}, {{ y }}) %>% 
+      mutate({{ x }} := names(.)[2]) %>% 
+      rename(yes_column = 2, comment = 3)
+  }
+)
+```
+
+
+```{r}
+# om_new %>% 
+#   filter(MedstarID == "7d6ff06abd134660b4eea67931aa0155")
+```
+
+2021-02-08: There aren't any "Yes's" without a comment. There is one "Yes" with a comment of "No evidence". It looks like a typo.
+
+
+
+

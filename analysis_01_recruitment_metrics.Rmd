@@ -1,0 +1,371 @@
+---
+title: "Recruiting metrics"
+---
+
+```{r message=FALSE}
+library(dplyr)
+library(readr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+```
+
+The merged data used below was created in data_01_import.Rmd.
+
+```{r}
+# For testing only
+# merged_followup <- read_rds("/Users/bradcannell/Desktop/merged_followup.rds")
+```
+
+I probably want to get some idea of what the metrics, graphs, etc look like outside of Shiny. I can use this file for that purpose. I can also refer to index.Rmd from the static dashboard. 
+
+I may also want to get a handle on some basic Shiny functionality (e.g., filtering data on date) while I'm working on this process. That will take place in app.R.
+
+# Sidebar
+
+* Data refresh button
+
+* Date filter
+
+* Outbound caller filter
+
+# Tab: Overview
+
+Not 100% sure what I want this to contain yet.
+
+## Total interviews completed out of 2,500
+
+The total interviews completed 
+
+# Tab: Quality control
+
+* Call without a call log
+
+* No response
+
+* No answered_by
+
+* No observational data
+
+* Appointment date, but record status is not Participant Scheduled.
+
+# Tab: Outbound calls
+
+## Total calls made
+
+Each row in the data should represent a single call. It isn't perfect. We know that not every single call made gets put in the FM Pro call log, but most of them do.
+
+```{r}
+nrow(merged_followup)
+```
+
+## Calls made per day
+
+Create a function that I can use to count calls made and appointments scheduled (and possibly other metrics in the future) by day.
+
+```{r}
+count_per_day <- function(data, var) {
+  data %>%
+    count({{ var }}) %>% 
+    # Fill-in missing days with zero
+    complete(
+      {{ var }} := seq({{ var }}[1], Sys.Date(), by = "1 day"), 
+      fill = list(n = 0)
+    ) %>% 
+    # Add cumulative sum
+    mutate(cumulative_n = cumsum(n)) %>%
+    # Add call day variable
+    mutate(
+      day = weekdays({{ var }}),
+      day = forcats::fct_relevel(
+        day, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
+      )
+    ) %>%
+    # Improve plot readability
+    rename(
+      Date = call_date,
+      Day = day
+    )
+}
+
+# For testing
+# count_per_day(merged_followup, call_date)
+```
+
+```{r}
+calls_per_day <- count_per_day(merged_followup, call_date)
+```
+
+## Appointments scheduled per day
+
+```{r}
+scheduled_per_day <- merged_followup %>% 
+  # First, just grab rows that were scheduled
+  filter(scheduled == TRUE) %>% 
+  # Count the day the call was made, not the appointment date. We care about 
+  # how many F/U's were scheduled (call_date), not how many were conducted
+  # (appointment_date)
+  count_per_day(call_date)
+```
+
+```{r}
+calls_per_day_w_scheduled <- calls_per_day %>%
+  left_join(
+    scheduled_per_day, 
+    by = c("Date", "Day"),
+    suffix = c("_calls", "_scheduled")
+  ) %>% 
+  # Change NA in first row of scheduled to 0
+  mutate(
+    across(
+      n_scheduled:cumulative_n_scheduled,
+      replace_na, 0
+    )
+  )
+```
+
+## Calls made per month
+
+* Can't just count calls by month because months will be combined across years.
+* Can't just paste month and year together because they will be displayed in alphabetical order rather than chronological order.
+* Need to create a factor for year and month.
+
+```{r}
+aggregate_to_month <- function(data) {
+  # For year_month factor variable below
+  years <- seq.Date(as.Date("2019-08-01"), Sys.Date(), by = "year")
+  years <- lubridate::year(years)
+  month_years <- paste(rep(years, each = 12), month.name)
+  
+  data %>% 
+    # Separate call year and month into two columns
+    mutate(
+      year  = lubridate::year(Date),
+      month = lubridate::month(Date)
+    ) %>%
+    group_by(year, month) %>% 
+    summarise(n = sum(n), .groups = "drop") %>% 
+    # Improve plot readability
+    mutate(
+      month_name   = factor(month, 1:12, month.name),
+      year_month   = paste(year, month_name),
+      year_month_f = factor(year_month, month_years, month_years)
+    ) 
+}
+
+# For testing
+# aggregate_to_month(calls_per_day)
+```
+
+```{r}
+calls_per_month <- aggregate_to_month(calls_per_day)
+```
+
+## Appointments scheduled per month
+
+```{r}
+scheduled_per_month <- aggregate_to_month(scheduled_per_day)
+```
+
+```{r}
+calls_per_month_w_scheduled <- calls_per_month %>%
+  left_join(
+    scheduled_per_month %>% 
+      select(year, month, n),
+    by = c("year", "month"),
+    suffix = c("_calls", "_scheduled")
+  )
+```
+
+## Plot called and scheduled
+
+Also, create a factor version of scheduled per day for the plot below (Plot called and scheduled).
+
+```{r}
+calls_per_day_w_scheduled <- calls_per_day_w_scheduled %>% 
+  mutate(
+    n_scheduled_f = case_when(
+      is.na(n_scheduled) ~ NA_character_,
+      n_scheduled == 0   ~ "0",
+      n_scheduled == 1   ~ "1",
+      n_scheduled == 2   ~ "2",
+      n_scheduled == 3   ~ "3",
+      n_scheduled == 4   ~ "4",
+      TRUE               ~ "5+"
+    ) %>% 
+      factor()
+  )
+```
+
+Export data for experimenting with Shiny.
+
+```{r}
+write_rds(
+  calls_per_day_w_scheduled, 
+  "/Users/bradcannell/Desktop/calls_per_day_w_scheduled.rds"
+)
+```
+
+```{r}
+calls_per_day_plot <- ggplot(calls_per_day_w_scheduled, aes(Date, n_calls)) +
+  geom_line(color = "#8a8a8a") +
+  geom_point(aes(color = n_scheduled_f)) +
+  scale_x_date("Date", date_label = "%b-%y") +
+  scale_y_continuous("Number of Calls") +
+  scale_color_manual(
+    "F/U Scheduled",
+    values = c("#8a8a8a", "#F2E750", "#F2B807", "#F28705", "#C52104", "#a60303"),
+    drop = FALSE
+  ) +
+  theme_classic() +
+  theme(legend.title = element_text(size = 8))
+
+plotly::ggplotly(calls_per_day_plot)
+```
+
+Correlation between calls made and scheduled?
+
+```{r}
+cor.test(
+  calls_per_day_w_scheduled$n_calls, 
+  calls_per_day_w_scheduled$n_scheduled
+)
+```
+```{r}
+test <- calls_per_day_w_scheduled %>% 
+  mutate(n_calls_rescale = n_calls / 40)
+lm(n_scheduled ~ n_calls_rescale, data = test)
+```
+
+## Unique MedStar IDs
+
+```{r}
+length(unique(merged_followup$medstar_id))
+```
+
+## Average calls per id
+
+```{r}
+nrow(merged_followup) / length(unique(merged_followup$medstar_id))
+```
+
+```{r}
+mean(merged_followup$n_calls_by_id, na.rm = TRUE)
+```
+
+```{r}
+count(merged_followup, n_calls_by_id)
+```
+
+## Week-over-week comparison in F/U appointmensts scheduled
+
+Typically, I will run the recruiting report on Monday morning. What I'm intersted in knowing is how many people we recruited the week prior, and how that compares to two weeks prior?
+
+```{r}
+# Get today's date
+today <- today()
+# What is the first day of this week?
+# Week starts on Sunday by default
+floor_date_current <- floor_date(today, "week")
+# What is the last day of this week?
+# ceiling_date in the lubridate package returns the first date of the following 
+# period (Sunday by default). Subtract 1 to get the last date of the current 
+# period.
+ceiling_date_current <- ceiling_date(today, "week") - days(1)
+# Get last week's floor and ceiling dates
+floor_date_last_week <- floor_date_current - days(7)
+ceiling_date_last_week <- ceiling_date_current - days(7)
+# Get floor and ceiling dates from two weeks ago
+floor_date_two_weeks_ago <- floor_date_current - days(14)
+ceiling_date_two_weeks_ago <- ceiling_date_current - days(14)
+```
+
+How many people did we schedule last week?
+
+```{r}
+n_scheduled_last_week <- merged_followup %>% 
+  filter(call_date > floor_date_last_week & call_date < ceiling_date_last_week) %>% 
+  filter(scheduled == TRUE) %>% 
+  nrow()
+```
+
+How many people did we schedule two weeks ago?
+
+```{r}
+n_scheduled_two_weeks_ago <- merged_followup %>% 
+  filter(call_date > floor_date_two_weeks_ago & call_date < ceiling_date_two_weeks_ago) %>% 
+  filter(scheduled == TRUE) %>% 
+  nrow()
+```
+
+What is the absolute and percentage differences in F/U's scheduled
+
+```{r}
+tibble(
+  diff = n_scheduled_last_week - n_scheduled_two_weeks_ago,
+  percent_diff = (diff / n_scheduled_two_weeks_ago) * 100
+)
+```
+
+
+## Created by
+
+Go back and fix NA in data_01_import. Do that after you figure out all the things that need to be changed. Also, change the records created by Sunil as well.
+
+```{r}
+merged_followup %>% 
+  # To get rid of all of Kay's different user names
+  mutate(x_created_by_cl = str_to_lower(x_created_by_cl)) %>% 
+  count(x_created_by_cl)
+```
+
+## Answered by
+
+```{r}
+merged_followup %>% 
+  # count(answered_by)
+  # For data checking
+  filter(is.na(answered_by)) %>% 
+  distinct(medstar_id) %>% 
+  mutate(medstar_id_last_5 = str_extract(medstar_id, ".{5}$")) %>% 
+  select(-medstar_id) %>% 
+  write_csv("/Users/bradcannell/Desktop/no_answer_by.csv")
+```
+
+
+## Responses
+
+2020-09-16: There are still some NA responses that need to be recoded. I've saved them and will ask Grace to recode them.
+
+```{r}
+merged_followup %>% 
+  mutate(final_response = if_else(is.na(response_recode), response, response_recode)) %>% 
+  count(final_response) %>% 
+  arrange(desc(n)) %>% 
+  mutate(percent = round((n / sum(n) * 100), 1))
+  # For data checking
+  # filter(is.na(final_response))
+```
+
+## Answered by
+
+We have 163 answered 
+
+```{r}
+merged_followup %>% 
+  count(answered_by) %>% 
+  arrange(desc(n)) %>% 
+  mutate(percent = round((n / sum(n) * 100), 1))
+  # For data checking
+  # filter(is.na(final_response))
+```
+
+## Call time
+
+## Call day
+
+## Record status
+
+# Tab: MoCA
+
+# 
