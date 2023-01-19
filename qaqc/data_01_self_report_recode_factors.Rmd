@@ -10,7 +10,6 @@ library(stringr)
 library(dplyr, warn.conflicts = FALSE)
 ```
 
-
 # Load data
 
 Load the data tables into the global environment as data frames. We will create categorical variables with numerical values that match the codebook and also create a factor variable for each categorical variable in the data frame to be used for analysis.
@@ -146,27 +145,24 @@ sr <- sr %>%
   )
 ```
 
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    neglect_person_12cat = case_when(
-        neglect_person == "A spouse or partner"     ~ 1, 
-        neglect_person == "An ex spouse or partner" ~ 2, 
-        neglect_person == "A parent or step-parent" ~ 3, 
-        neglect_person == "A brother or sister"     ~ 4, 
-        neglect_person == "A son or daughter"       ~ 5, 
-        neglect_person == "Another relative"        ~ 6, 
-        neglect_person == "A coworker"              ~ 7, 
-        neglect_person == "A neighbor"              ~ 8, 
-        neglect_person == "A friend"                ~ 9, 
-        neglect_person == "Some other non-relative" ~ 10,
-        neglect_person == "Don't know"              ~ 77, 
-        neglect_person == "Refused"                 ~ 99
-    ),
-    neglect_person_12cat_f = factor(
-        neglect_person,
-        levels = levels_person
-    )
+    neglect_spouse         = as.numeric(str_detect(neglect_person, "A spouse or partner")),
+    neglect_ex_partner     = as.numeric(str_detect(neglect_person, "An ex-spouse or parner")),
+    neglect_parent         = as.numeric(str_detect(neglect_person, "A parent or step-parent")),
+    neglect_sibling        = as.numeric(str_detect(neglect_person, "A brother or sister")),
+    neglect_child          = as.numeric(str_detect(neglect_person, "A son or daughter")),
+    neglect_other_relative = as.numeric(str_detect(neglect_person, "Another relative")),
+    neglect_coworker       = as.numeric(str_detect(neglect_person, "A coworker")),
+    neglect_neighbor       = as.numeric(str_detect(neglect_person, "A neighbor")),
+    neglect_friend         = as.numeric(str_detect(neglect_person, "A friend")),
+    neglect_non_relative   = as.numeric(str_detect(neglect_person, "Some other non-relative")),
+    neglect_dont_know      = as.numeric(str_detect(neglect_person, "Don't know")),
+    neglect_refused        = as.numeric(str_detect(neglect_person, "Refused"))
   )
 ```
   
@@ -211,27 +207,24 @@ sr <- sr %>%
   )
 ```    
 
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    finance_person_12cat = case_when(
-      finance_person == "A spouse or partner"     ~ 1, 
-      finance_person == "An ex spouse or partner" ~ 2, 
-      finance_person == "A parent or step-parent" ~ 3, 
-      finance_person == "A brother or sister"     ~ 4, 
-      finance_person == "A son or daughter"       ~ 5, 
-      finance_person == "Another relative"        ~ 6, 
-      finance_person == "A coworker"              ~ 7, 
-      finance_person == "A neighbor"              ~ 8, 
-      finance_person == "A friend"                ~ 9, 
-      finance_person == "Some other non-relative" ~ 10,
-      finance_person == "Don't know"              ~ 77, 
-      finance_person == "Refused"                 ~ 99
-    ),
-    finance_person_12cat_f = factor(
-      finance_person,
-      levels = levels_person
-    )
+    finance_spouse         = as.numeric(str_detect(finance_person, "A spouse or partner")),
+    finance_ex_partner     = as.numeric(str_detect(finance_person, "An ex-spouse or parner")),
+    finance_parent         = as.numeric(str_detect(finance_person, "A parent or step-parent")),
+    finance_sibling        = as.numeric(str_detect(finance_person, "A brother or sister")),
+    finance_child          = as.numeric(str_detect(finance_person, "A son or daughter")),
+    finance_other_relative = as.numeric(str_detect(finance_person, "Another relative")),
+    finance_coworker       = as.numeric(str_detect(finance_person, "A coworker")),
+    finance_neighbor       = as.numeric(str_detect(finance_person, "A neighbor")),
+    finance_friend         = as.numeric(str_detect(finance_person, "A friend")),
+    finance_non_relative   = as.numeric(str_detect(finance_person, "Some other non-relative")),
+    finance_dont_know      = as.numeric(str_detect(finance_person, "Don't know")),
+    finance_refused        = as.numeric(str_detect(finance_person, "Refused"))
   )
 ```
 
@@ -312,28 +305,25 @@ sr <- sr %>%
   )
 ```
   
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    emotional_incident_person_12cat = case_when(
-      emotional_incident_person == "A stranger"              ~ 1,
-      emotional_incident_person == "A spouse or partner"     ~ 2, 
-      emotional_incident_person == "An ex spouse or partner" ~ 3, 
-      emotional_incident_person == "A parent or step-parent" ~ 4, 
-      emotional_incident_person == "A brother or sister"     ~ 5, 
-      emotional_incident_person == "A son or daughter"       ~ 6, 
-      emotional_incident_person == "Another relative"        ~ 7, 
-      emotional_incident_person == "A coworker"              ~ 8, 
-      emotional_incident_person == "A neighbor"              ~ 9, 
-      emotional_incident_person == "A friend"                ~ 10, 
-      emotional_incident_person == "Some other non-relative" ~ 11,
-      emotional_incident_person == "Don't know"              ~ 77, 
-      emotional_incident_person == "Refused"                 ~ 99
-    ),
-    emotional_incident_person_12cat_f = factor(
-      emotional_incident_person,
-      levels = levels_person_v2
-    )
+    emotional_stranger       = as.numeric(str_detect(emotional_incident_person, "A stranger")),
+    emotional_spouse         = as.numeric(str_detect(emotional_incident_person, "A spouse or partner")),
+    emotional_ex_partner     = as.numeric(str_detect(emotional_incident_person, "An ex-spouse or parner")),
+    emotional_parent         = as.numeric(str_detect(emotional_incident_person, "A parent or step-parent")),
+    emotional_sibling        = as.numeric(str_detect(emotional_incident_person, "A brother or sister")),
+    emotional_child          = as.numeric(str_detect(emotional_incident_person, "A son or daughter")),
+    emotional_other_relative = as.numeric(str_detect(emotional_incident_person, "Another relative")),
+    emotional_coworker       = as.numeric(str_detect(emotional_incident_person, "A coworker")),
+    emotional_neighbor       = as.numeric(str_detect(emotional_incident_person, "A neighbor")),
+    emotional_friend         = as.numeric(str_detect(emotional_incident_person, "A friend")),
+    emotional_non_relative   = as.numeric(str_detect(emotional_incident_person, "Some other non-relative")),
+    emotional_dont_know      = as.numeric(str_detect(emotional_incident_person, "Don't know")),
+    emotional_refused        = as.numeric(str_detect(emotional_incident_person, "Refused"))
   )
 ```
     
@@ -406,28 +396,25 @@ sr <- sr %>%
   )
 ```
   
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    emotional_incident_person_v2_12cat = case_when(
-      emotional_incident_person_v2 == "A stranger"              ~ 1,
-      emotional_incident_person_v2 == "A spouse or partner"     ~ 2, 
-      emotional_incident_person_v2 == "An ex spouse or partner" ~ 3, 
-      emotional_incident_person_v2 == "A parent or step-parent" ~ 4, 
-      emotional_incident_person_v2 == "A brother or sister"     ~ 5, 
-      emotional_incident_person_v2 == "A son or daughter"       ~ 6, 
-      emotional_incident_person_v2 == "Another relative"        ~ 7, 
-      emotional_incident_person_v2 == "A coworker"              ~ 8, 
-      emotional_incident_person_v2 == "A neighbor"              ~ 9, 
-      emotional_incident_person_v2 == "A friend"                ~ 10, 
-      emotional_incident_person_v2 == "Some other non-relative" ~ 11,
-      emotional_incident_person_v2 == "Don't know"              ~ 77, 
-      emotional_incident_person_v2 == "Refused"                 ~ 99
-    ),
-    emotional_incident_person_v2_12cat_f = factor(
-      emotional_incident_person_v2,
-      levels = levels_person_v2
-    )
+    emotional_stranger_v2       = as.numeric(str_detect(emotional_incident_person_v2, "A stranger")),
+    emotional_spouse_v2         = as.numeric(str_detect(emotional_incident_person_v2, "A spouse or partner")),
+    emotional_ex_partner_v2     = as.numeric(str_detect(emotional_incident_person_v2, "An ex-spouse or parner")),
+    emotional_parent_v2         = as.numeric(str_detect(emotional_incident_person_v2, "A parent or step-parent")),
+    emotional_sibling_v2        = as.numeric(str_detect(emotional_incident_person_v2, "A brother or sister")),
+    emotional_child_v2          = as.numeric(str_detect(emotional_incident_person_v2, "A son or daughter")),
+    emotional_other_relative_v2 = as.numeric(str_detect(emotional_incident_person_v2, "Another relative")),
+    emotional_coworker_v2       = as.numeric(str_detect(emotional_incident_person_v2, "A coworker")),
+    emotional_neighbor_v2       = as.numeric(str_detect(emotional_incident_person_v2, "A neighbor")),
+    emotional_friend_v2         = as.numeric(str_detect(emotional_incident_person_v2, "A friend")),
+    emotional_non_relative_v2   = as.numeric(str_detect(emotional_incident_person_v2, "Some other non-relative")),
+    emotional_dont_know_v2      = as.numeric(str_detect(emotional_incident_person_v2, "Don't know")),
+    emotional_refused_v2        = as.numeric(str_detect(emotional_incident_person_v2, "Refused"))
   )
 ```
   
@@ -532,53 +519,46 @@ sr <- sr %>%
 ```
   
 
-```{r}
-sr <- sr %>%
-  mutate(
-    physical_incident_person_v2_12cat = case_when(
-      physical_incident_person_v2 == "A stranger"              ~ 1,
-      physical_incident_person_v2 == "A spouse or partner"     ~ 2, 
-      physical_incident_person_v2 == "An ex spouse or partner" ~ 3, 
-      physical_incident_person_v2 == "A parent or step-parent" ~ 4, 
-      physical_incident_person_v2 == "A brother or sister"     ~ 5, 
-      physical_incident_person_v2 == "A son or daughter"       ~ 6, 
-      physical_incident_person_v2 == "Another relative"        ~ 7, 
-      physical_incident_person_v2 == "A coworker"              ~ 8, 
-      physical_incident_person_v2 == "A neighbor"              ~ 9, 
-      physical_incident_person_v2 == "A friend"                ~ 10, 
-      physical_incident_person_v2 == "Some other non-relative" ~ 11,
-      physical_incident_person_v2 == "Don't know"              ~ 77, 
-      physical_incident_person_v2 == "Refused"                 ~ 99
-    ),
-    physical_incident_person_v2_12cat_f = factor(
-      physical_incident_person_v2,
-      levels = levels_person_v2
-    )
-  )
-```
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
 
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    physical_person_12cat = case_when(
-      physical_person == "A stranger"              ~ 1,
-      physical_person == "A spouse or partner"     ~ 2, 
-      physical_person == "An ex spouse or partner" ~ 3, 
-      physical_person == "A parent or step-parent" ~ 4, 
-      physical_person == "A brother or sister"     ~ 5, 
-      physical_person == "A son or daughter"       ~ 6, 
-      physical_person == "Another relative"        ~ 7, 
-      physical_person == "A coworker"              ~ 8, 
-      physical_person == "A neighbor"              ~ 9, 
-      physical_person == "A friend"                ~ 10, 
-      physical_person == "Some other non-relative" ~ 11,
-      physical_person == "Don't know"              ~ 77, 
-      physical_person == "Refused"                 ~ 99
-    ),
-    physical_person_12cat_f = factor(
-      physical_person,
-      levels = levels_person_v2
-    )
+    physical_stranger_v2       = as.numeric(str_detect(physical_incident_person_v2, "A stranger")),
+    physical_spouse_v2         = as.numeric(str_detect(physical_incident_person_v2, "A spouse or partner")),
+    physical_ex_partner_v2     = as.numeric(str_detect(physical_incident_person_v2, "An ex-spouse or parner")),
+    physical_parent_v2         = as.numeric(str_detect(physical_incident_person_v2, "A parent or step-parent")),
+    physical_sibling_v2        = as.numeric(str_detect(physical_incident_person_v2, "A brother or sister")),
+    physical_child_v2          = as.numeric(str_detect(physical_incident_person_v2, "A son or daughter")),
+    physical_other_relative_v2 = as.numeric(str_detect(physical_incident_person_v2, "Another relative")),
+    physical_coworker_v2       = as.numeric(str_detect(physical_incident_person_v2, "A coworker")),
+    physical_neighbor_v2       = as.numeric(str_detect(physical_incident_person_v2, "A neighbor")),
+    physical_friend_v2         = as.numeric(str_detect(physical_incident_person_v2, "A friend")),
+    physical_non_relative_v2   = as.numeric(str_detect(physical_incident_person_v2, "Some other non-relative")),
+    physical_dont_know_v2      = as.numeric(str_detect(physical_incident_person_v2, "Don't know")),
+    physical_refused_v2        = as.numeric(str_detect(physical_incident_person_v2, "Refused"))
+  )
+```
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
+```{r}
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
+  mutate(
+    physical_stranger       = as.numeric(str_detect(physical_incident_person, "A stranger")),
+    physical_spouse         = as.numeric(str_detect(physical_incident_person, "A spouse or partner")),
+    physical_ex_partner     = as.numeric(str_detect(physical_incident_person, "An ex-spouse or parner")),
+    physical_parent         = as.numeric(str_detect(physical_incident_person, "A parent or step-parent")),
+    physical_sibling        = as.numeric(str_detect(physical_incident_person, "A brother or sister")),
+    physical_child          = as.numeric(str_detect(physical_incident_person, "A son or daughter")),
+    physical_other_relative = as.numeric(str_detect(physical_incident_person, "Another relative")),
+    physical_coworker       = as.numeric(str_detect(physical_incident_person, "A coworker")),
+    physical_neighbor       = as.numeric(str_detect(physical_incident_person, "A neighbor")),
+    physical_friend         = as.numeric(str_detect(physical_incident_person, "A friend")),
+    physical_non_relative   = as.numeric(str_detect(physical_incident_person, "Some other non-relative")),
+    physical_dont_know      = as.numeric(str_detect(physical_incident_person, "Don't know")),
+    physical_refused        = as.numeric(str_detect(physical_incident_person, "Refused"))
   )
 ```
   
@@ -682,53 +662,46 @@ sr <- sr %>%
   )
 ```
   
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    sexual_incident_person_v2_12cat = case_when(
-      sexual_incident_person_v2 == "A stranger"              ~ 1,
-      sexual_incident_person_v2 == "A spouse or partner"     ~ 2, 
-      sexual_incident_person_v2 == "An ex spouse or partner" ~ 3, 
-      sexual_incident_person_v2 == "A parent or step-parent" ~ 4, 
-      sexual_incident_person_v2 == "A brother or sister"     ~ 5, 
-      sexual_incident_person_v2 == "A son or daughter"       ~ 6, 
-      sexual_incident_person_v2 == "Another relative"        ~ 7, 
-      sexual_incident_person_v2 == "A coworker"              ~ 8, 
-      sexual_incident_person_v2 == "A neighbor"              ~ 9, 
-      sexual_incident_person_v2 == "A friend"                ~ 10, 
-      sexual_incident_person_v2 == "Some other non-relative" ~ 11,
-      sexual_incident_person_v2 == "Don't know"              ~ 77, 
-      sexual_incident_person_v2 == "Refused"                 ~ 99
-    ),
-    sexual_incident_person_v2_12cat_f = factor(
-      sexual_incident_person_v2,
-      levels = levels_person_v2
-    )
+    sexual_stranger_v2       = as.numeric(str_detect(sexual_incident_person_v2, "A stranger")),
+    sexual_spouse_v2         = as.numeric(str_detect(sexual_incident_person_v2, "A spouse or partner")),
+    sexual_ex_partner_v2     = as.numeric(str_detect(sexual_incident_person_v2, "An ex-spouse or parner")),
+    sexual_parent_v2         = as.numeric(str_detect(sexual_incident_person_v2, "A parent or step-parent")),
+    sexual_sibling_v2        = as.numeric(str_detect(sexual_incident_person_v2, "A brother or sister")),
+    sexual_child_v2          = as.numeric(str_detect(sexual_incident_person_v2, "A son or daughter")),
+    sexual_other_relative_v2 = as.numeric(str_detect(sexual_incident_person_v2, "Another relative")),
+    sexual_coworker_v2       = as.numeric(str_detect(sexual_incident_person_v2, "A coworker")),
+    sexual_neighbor_v2       = as.numeric(str_detect(sexual_incident_person_v2, "A neighbor")),
+    sexual_friend_v2         = as.numeric(str_detect(sexual_incident_person_v2, "A friend")),
+    sexual_non_relative_v2   = as.numeric(str_detect(sexual_incident_person_v2, "Some other non-relative")),
+    sexual_dont_know_v2      = as.numeric(str_detect(sexual_incident_person_v2, "Don't know")),
+    sexual_refused_v2        = as.numeric(str_detect(sexual_incident_person_v2, "Refused"))
   )
 ```
-  
+Participants were allowed to choose more than one person during the interview. Since some people chose more than one person for these questions, a dummy variable was created. 
+
 ```{r}
-sr <- sr %>%
+#Create dummy variables for race categories 1 = TRUE 0 = FALSE
+sr <- sr %>% 
   mutate(
-    sexual_person_12cat = case_when(
-      sexual_person == "A stranger"              ~ 1,
-      sexual_person == "A spouse or partner"     ~ 2, 
-      sexual_person == "An ex spouse or partner" ~ 3, 
-      sexual_person == "A parent or step-parent" ~ 4, 
-      sexual_person == "A brother or sister"     ~ 5, 
-      sexual_person == "A son or daughter"       ~ 6, 
-      sexual_person == "Another relative"        ~ 7, 
-      sexual_person == "A coworker"              ~ 8, 
-      sexual_person == "A neighbor"              ~ 9, 
-      sexual_person == "A friend"                ~ 10, 
-      sexual_person == "Some other non-relative" ~ 11,
-      sexual_person == "Don't know"              ~ 77, 
-      sexual_person == "Refused"                 ~ 99
-    ),
-    sexual_person_12cat_f = factor(
-      sexual_person,
-      levels = levels_person_v2
-    )
+    sexual_stranger       = as.numeric(str_detect(sexual_incident_person, "A stranger")),
+    sexual_spouse         = as.numeric(str_detect(sexual_incident_person, "A spouse or partner")),
+    sexual_ex_partner     = as.numeric(str_detect(sexual_incident_person, "An ex-spouse or parner")),
+    sexual_parent         = as.numeric(str_detect(sexual_incident_person, "A parent or step-parent")),
+    sexual_sibling        = as.numeric(str_detect(sexual_incident_person, "A brother or sister")),
+    sexual_child          = as.numeric(str_detect(sexual_incident_person, "A son or daughter")),
+    sexual_other_relative = as.numeric(str_detect(sexual_incident_person, "Another relative")),
+    sexual_coworker       = as.numeric(str_detect(sexual_incident_person, "A coworker")),
+    sexual_neighbor       = as.numeric(str_detect(sexual_incident_person, "A neighbor")),
+    sexual_friend         = as.numeric(str_detect(sexual_incident_person, "A friend")),
+    sexual_non_relative   = as.numeric(str_detect(sexual_incident_person, "Some other non-relative")),
+    sexual_dont_know      = as.numeric(str_detect(sexual_incident_person, "Don't know")),
+    sexual_refused        = as.numeric(str_detect(sexual_incident_person, "Refused"))
   )
 ```
 
