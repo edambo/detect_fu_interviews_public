@@ -1,0 +1,246 @@
+---
+title: "CodebookR APS Investigations data from recoded data"
+author: "Marissa Gough"
+---
+
+```{r}
+# Load necessary packages
+library(codebookr)
+library(dplyr, warn.conflicts = FALSE)
+library(readr)
+```
+
+# Purpose of the program
+
+Using the CodebookR package, we will create a data dictionary for follow-up interview data for the DETECT project.
+
+```{r}
+# Load data from APS Investigations data set
+aps <- read_rds("~.../detect_public/data/aps_factor.rds") #595 23
+```
+
+# Set column attributes
+
+```{r}
+# Create a vector of column names that have the same source, in this case administrative data
+admin_vars <- aps %>% 
+  select(1:11) %>%  # Choose the first columns in the data frame
+  names()
+
+for(i in admin_vars) {
+  attr(aps[[i]], "source") <- "Administrative data"
+}
+```
+
+```{r}
+# Create a vector of column names that have the same source, in this case APS Investigations data from DETECT Follow-up Interview
+aps_vars <- aps %>% 
+  select(12:15) %>% # Choose the variables from the raw data
+  names()
+
+for(i in aps_vars) {
+  attr(aps[[i]], "source") <- "DETECT Follow-up Interview APS Investigations"
+}
+```
+
+```{r}
+# Create a vector of column names that have the same source, in this case recoded factor variables
+factor_vars <- aps %>% 
+  select(16:23) %>%  #Choose the recoded variables
+  names()
+
+for(i in factor_vars) {
+  attr(aps[[i]], "source") <- "Recoded from raw data"
+}
+```
+
+
+
+```{r}
+# Create a template for all variables in the dataframe
+for (i in seq_along(names(aps))) {
+  cat(paste0('
+    cb_add_col_attributes( \n    ',
+      "  ", names(aps)[i], ', \n    ',
+      "  ", 'description = ""
+    ) %>%
+  '))
+}
+```
+
+```{r}
+# Add column attributes to all variables
+aps <- aps %>%
+    cb_add_col_attributes( 
+      x_created_by, 
+      description = "Person who created the record"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_created_timestamp, 
+      description = "Timestamp when the record was created",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_modified_by, 
+      description = "Person who modified the record"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_modified_timestamp, 
+      description = "Timestamp when the record was modified",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_error_message, 
+      description = "Error message entered by research team"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_month, 
+      description = "Month record was created",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_year, 
+      description = "Year record was created",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_status, 
+      description = "Status of the record as determined by research team"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_comment, 
+      description = "Comments by interviewer"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      medstar_id, 
+      description = "Unique record number in MedStar System"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      name_full, 
+      description = "Full name of older individual"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_report, 
+      description  = "AI_1. Has anyone from Adult Protective Services ever attempted to investigate whether or not you were living with elder abuse or neglect?", 
+      skip_pattern = "Skip to section 6 if any answer is given but Yes"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_times, 
+      description  = "AI_2. How many times has this happened in your life?",
+      skip_pattern = "If answer is 0 or Refused, go to Section 6. If answer is 1 go to AI_4."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_first, 
+      description  = "AI_3. When was the first time APS attempted to do an investigation?",
+      skip_pattern = "If answer is Refused, go to Section 6."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_recent, 
+      description = "AI_4. When was the most recent time APS attempted to do an investigation?"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_report_4cat, 
+      description  = "Recoded variable aps_report to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"        = 1, 
+        "No"         = 2, 
+        "Don’t know" = 7, 
+        "Refused"    = 9
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_report_4cat_f, 
+      description = "Recoded variable aps_report as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes(
+      aps_times_5cat, 
+      description = "Recoded variable aps_times to match levels in follow-up interview protocol",
+      value_labels = c(
+        "0"          = 0, 
+        "1"          = 1, 
+        "2+"         = 2, 
+        "Don’t know" = 7, 
+        "Refused"    = 9),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_times_5cat_f, 
+      description = "Recoded variable aps_times as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_first_8cat, 
+      description = "Recoded variable aps_first to match levels in follow-up interview protocol",
+      value_labels = c(
+        "10 or more years ago"                       = 1, 
+        "5-10 years ago"                             = 2, 
+        "1-5 years ago"                              = 3, 
+        "In the past year but more than a month ago" = 4, 
+        "In the past month"                          = 5, 
+        "In the past week"                           = 6, 
+        "Don’t know"                                 = 7,
+        "Refused"                                    = 9
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_first_8cat_f, 
+      description = "Recoded variable aps_first as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_recent_8cat, 
+      description = "Recoded variable aps_recent to match levels in follow-up interview protocol",
+      value_labels = c(
+        "In the past week"                           = 1, 
+        "In the past month"                          = 2,
+        "In the past year but more than a month ago" = 3,
+        "1-5 years ago"                              = 4,
+        "5-10 years ago"                             = 5, 
+        "10 or more years ago"                       = 6,
+        "Don’t know"                                 = 7,
+        "Refused"                                    = 9
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      aps_recent_8cat_f, 
+      description = "Recoded variable aps_recent as a factor variable"
+    )
+```
+
+# Pass data frame to the codebook() function
+
+```{r}
+# Add title and description to codebook
+aps_codebook <- codebook(
+  df = aps,
+  title = "APS Investigations Dataset",
+  description = "Data collected during DETECT follow-up interviews on any visits the older adult may have had from Adult Protective Services (APS)",
+  no_summary_stats = admin_vars)
+```
+
+```{r}
+print(aps_codebook, "basic_aps_codebook.docx")
+```

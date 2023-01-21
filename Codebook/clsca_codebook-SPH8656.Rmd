@@ -1,0 +1,304 @@
+---
+title: "Clutter Scale Codebook"
+output: html_document
+date: "2022-10-11"
+---
+
+```{r}
+# Load needed packages
+library(codebookr)
+library(dplyr, warn.conflicts = FALSE)
+library(haven)
+library(readr)
+```
+
+# Purpose of the program
+
+Using the CodebookR package, we will create a data dictionary for follow-up interview data for the DETECT project.
+
+```{r}
+# Load data from Clutter Scale data set
+clsca <- readRDS("~/Documents/UT Thesis/clsca_factor.rds")
+```
+
+# Set column attributes
+
+```{r}
+# Create a vector of column names that have the same source, in this case administrative data
+admin_vars <- clsca %>% 
+  select(1:11) %>%  # Choose the first columns in the data frame
+  names()
+
+for(i in admin_vars) {
+  attr(clsca[[i]], "source") <- "Administrative data"
+}
+```
+
+```{r}
+# Create a vector of column names that have the same source, in this case Clutter Scale data from DETECT Follow-up Interview
+clsca_vars <- clsca %>% 
+  select(12:20) %>% # Choose the variables from the raw data
+  names()
+
+for(i in clsca_vars) {
+  attr(clsca[[i]], "source") <- "DETECT Follow-up Interview Clutter Scale"
+}
+```
+
+```{r}
+# Create a vector of column names that have the same source, in this case recoded factor variables
+factor_vars <- clsca %>% 
+  select(21:35) %>%  #Choose the recoded variables
+  names()
+
+for(i in factor_vars) {
+  attr(clsca[[i]], "source") <- "Recoded from raw data"
+}
+```
+
+```{r}
+# Create a template for all variables in the data frame
+for (i in seq_along(names(clusca))) {
+  cat(paste0('
+    cb_add_col_attributes( \n    ',
+      "  ", names(clusca)[i], ', \n    ',
+      "  ", 'description = ""
+    ) %>%
+  '))
+}
+```
+
+```{r}
+# Add column attributes to all variables
+clsca <- clsca %>%
+    cb_add_col_attributes( 
+      x_created_by, 
+      description = "Person who created the record"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_created_timestamp, 
+      description = "Timestamp when the record was created",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_modified_by, 
+      description = "Person who modified the record"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_modified_timestamp, 
+      description = "Timestamp when the record was modified",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_error_message, 
+      description = "Error message entered by research team"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_month, 
+      description = "Month record was created",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_year, 
+      description = "Year record was created",
+      col_type = "Time"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_status, 
+      description = "Status of the record as determined by research team"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_comment, 
+      description = "Comments by interviewer"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      medstar_id, 
+      description = "Unique record number in MedStar System"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      name_full, 
+      description = "Full name of older individual"
+    ) %>%
+
+    cb_add_col_attributes( 
+      look_living, 
+      description = "CL_1a. May I take a look at your living room?",
+      skip_pattern = "If answer is No, go to CL_2a."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_living, 
+      description = "Clutter Image Rating Scale: Living Room. Please select the photo that most accurately reflects the amount of clutter in the room"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_living_photo, 
+      description = "CL_1b. May I take a picture of your living room?",
+      skip_pattern = "If answer is No, go to CL_2a."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_kitchen, 
+      description = "CL_2a. May I take a look at your kitchen?",
+      skip_pattern = "If answer is No, go to CL_3a."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_kitchen, 
+      description = "Clutter Image Rating Scale: Kitchen. Please select the photo that most accurately reflects the amount of clutter in the room"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_kitchen_photo, 
+      description = "CL_2b. May I take a picture of your kitchen?",
+      skip_pattern = "If answer is No, go to CL_3a."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_bedroom, 
+      description = "CL_3a. May I take a look at the bedroom where you sleep most regularly?",
+      skip_pattern = "If answer is No, go to section 4."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_bedroom, 
+      description = "Clutter Image Rating Scale: Bedroom. Please select the photo that most accurately reflects the amount of clutter in the room"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_bedroom_photo, 
+      description = "CL_3b. May I take a picture of your bedroom?",
+      skip_pattern = "If answer is No, go to section 4."
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_living_3cat, 
+      description  = "Recoded variable look_living to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"            = 1, 
+        "No"             = 2, 
+        "No living room" = 3
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_living_3cat_f, 
+      description = "Recoded variable look_living as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_living_f, 
+      description  = "Recoded variable clutter_living as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_living_photo_3cat, 
+      description  = "Recoded variable clutter_living_photo to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"            = 1, 
+        "No"             = 2, 
+        "No living room" = 3
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_living_photo_3cat_f, 
+      description  = "Recoded variable clutter_living_photo as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_kitchen_3cat, 
+      description  = "Recoded variable look_kitchen to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"            = 1, 
+        "No"             = 2, 
+        "No kitchen" = 3
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_kitchen_3cat_f, 
+      description  = "Recoded variable look_kitchen as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_kitchen_f, 
+      description  = "Recoded variable clutter_kitchen as a factor variable"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_kitchen_photo_3cat, 
+      description  = "Recoded variable clutter_kitchen_photo to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"            = 1, 
+        "No"             = 2, 
+        "No kitchen" = 3
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_kitchen_photo_3cat_f, 
+      description  = "Recoded variable clutter_kitchen_photo as a factor variable"
+    ) %>%
+  
+  
+    cb_add_col_attributes( 
+      look_bedroom_3cat, 
+      description  = "Recoded variable look_bedroom to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"            = 1, 
+        "No"             = 2, 
+        "No bedroom" = 3
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      look_bedroom_3cat_f, 
+      description  = "Recoded variable look_bedroom as a factor variable"
+    ) %>%
+
+    cb_add_col_attributes( 
+      clutter_bedroom_photo_3cat, 
+      description  = "Recoded variable clutter_bedroom_photo to match levels in follow-up interview protocol",
+      value_labels = c(
+        "Yes"            = 1, 
+        "No"             = 2, 
+        "No bedroom" = 3
+      ),
+      col_type = "Categorical"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      clutter_bedroom_photo_3cat_f, 
+      description  = "Recoded variable clutter_bedroom_photo as a factor variable"
+    ) 
+
+```
+
+```{r}
+# Add title and description to codebook
+clsca_codebook <- codebook(
+  df = clsca,
+  title = "Clutter Scale Dataset",
+  description = "Data collected during DETECT follow-up interviews regarding the patient's home inspection and clutter image rating scale",
+  no_summary_stats = admin_vars)
+```
+
+```{r}
+print(clsca_codebook, "clsca_codebook.docx")
+```
