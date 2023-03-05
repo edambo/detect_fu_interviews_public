@@ -1,6 +1,5 @@
 ---
 title: "APS Investigations Recode"
-output: html_notebook
 author: "Marissa Gough"
 ---
 
@@ -19,7 +18,6 @@ Load the data tables into the global environment as data frames. We will create 
 
 ```{r load data, messages = FALSE}
 apinve <- read_csv("APS Investigations.csv")
-
 ```
 
 ## Data cleaning.
