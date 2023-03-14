@@ -46,36 +46,6 @@ walk(
 
 ```
 
-
-Change the encoding of columns that contain unrecognized characters where there is an apostrophe. Substitute an apostrophe for the special characters so that the value is "Don't know"
-
-```{r}
-
-Encoding(general_health$outcomes_health_general) <- "ASCII"
-Encoding(general_health$outcomes_health_unable) <- "ASCII"
-Encoding(general_health$outcomes_health_keep) <- "ASCII"
-Encoding(general_health$auditc_drink) <- "ASCII"
-Encoding(general_health$auditc_day) <- "ASCII"
-Encoding(general_health$auditc_five) <- "ASCII"
-
-general_health <- general_health %>%
-  mutate(
-    outcomes_health_general =
-      iconv(outcomes_health_general, "ASCII", "latin1", "'"),
-    outcomes_health_keep = 
-      iconv(outcomes_health_keep, "ASCII", "latin1", "'"),
-    outcomes_health_unable = 
-      iconv(outcomes_health_unable, "ASCII", "latin1", "'"),
-    auditc_drink = 
-      iconv(auditc_drink, "ASCII", "latin1", "'"),
-    auditc_day = 
-      iconv(auditc_day, "ASCII", "latin1", "'"),
-    auditc_five = 
-      iconv(auditc_five, "ASCII", "latin1", "'")
-)
-
-```
-
 Change all instances of "Very severe" to "Very Severe" to match codebook.
 ```{r}
 general_health <- general_health %>% 
@@ -90,7 +60,7 @@ general_health[general_health == "Dont know"] <- "Don't know"
 ### PEG: A Three-Item Scale Assessing Pain Intensity and Interference
 
 
-```{r}
+```{r, error= TRUE}
 general_health <- general_health %>%
   mutate(
     across(

@@ -116,26 +116,22 @@ observational_measures <- observational_measures %>%
   mutate(
     across(
       .cols  = ("bruising": "abuse_statement"),
-      .fns   = ~ factor(.x), levels = c("No evidence", "Possible evidence", 
-                                        "Probable evidence", "Unable to assess"),
+      .fns   = ~ factor(.x),
       .names = "{col}_f"
     ),
     across(
       .cols  = ("contracture": "neglect_statement"),
-      .fns   = ~ factor(.x), levels = c("No evidence", "Possible evidence", 
-                                        "Probable evidence", "Unable to assess"),
+      .fns   = ~ factor(.x),
       .names = "{col}_f"
     ),
     across(
       .cols  = ("money_misuse": "exploitation_statement"),
-      .fns   = ~ factor(.x), levels = c("No evidence", "Possible evidence", 
-                                        "Probable evidence", "Unable to assess"),
+      .fns   = ~ factor(.x),
       .names = "{col}_f"
     ),
     across(
       .cols  = ("caretaker_withdrawn_care": "abandonment_statement"),
-      .fns   = ~ factor(.x), levels = c("No evidence", "Possible evidence", 
-                                        "Probable evidence", "Unable to assess"),
+      .fns   = ~ factor(.x),
       .names = "{col}_f"
     )
   )
@@ -324,8 +320,7 @@ observational_measures <- observational_measures %>%
   mutate(
     across(
       .cols  = ("summary_evidence_abuse": "summary_evidence_abandonment"),
-      .fns   = ~ factor(.x), levels = c("No evidence", "Possible evidence", 
-                                        "Probable evidence", "Unable to assess"),
+      .fns   = ~ factor(.x),
       .names = "{col}_f"
     )
   )
