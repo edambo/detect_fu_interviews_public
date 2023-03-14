@@ -17,12 +17,6 @@ library(tidyverse)
 
 Load the data tables into the global environment as data frames. We will create categorical variables with numerical values that match the codebook and also create a factor variable for each categorical variable in the data frame to be used for analysis.
 
-```{r load data, messages = FALSE}
-# I changed the encoding to remove unrecognized characters "Donít know" for don't know
-
-self_report <- read_csv("Self Report.csv", show_col_types = FALSE, locale = locale(encoding = "latin1", asciify = TRUE))
-```
-
 ## Data cleaning.
 
 Here we will convert all variable names to snake case so that everything is uniform.
@@ -54,7 +48,8 @@ walk(
 
 Remove unwanted characters and replace with "Don't know"
 ```{r}
-self_report[self_report == "Dont know"] <- "Don't know"
+self_report <- self_report %>% 
+  mutate_all(str_replace_all, "Don.t know", "Don't know")
 ```
 
 ## Self-report injury, violence, neglect, and exploitation

@@ -45,18 +45,6 @@ walk(
 )
 ```
 
-Change the encoding of columns that contain unrecognized characters where there is an apostrophe. Substitute an apostrophe for the special characters so that the value is "Don't know"
-
-```{r}
-Encoding(apinve$aps_first) <- "ASCII"
-
-
-apinve <- apinve %>%
-  mutate(
-    aps_first = 
-      iconv(aps_first, "ASCII", "latin1", "'")
-)
-```
 
 ```{r}
 apinve <- apinve %>%
