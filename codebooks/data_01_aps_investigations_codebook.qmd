@@ -18,54 +18,31 @@ Using the CodebookR package, we will create a data dictionary for follow-up inte
 # Load cleaned data
 ```{r}
 #| warning: false
-#Set working directory to location of rds files using 
-#setwd("folder path") 
-#or code may produce error
 aps_investigations_import.rds <- file.choose()
-apinve <- readRDS("aps_investigations_import.rds")
+aps_inv <- readRDS("aps_investigations_import.rds")
 ```
 
 # Glimpse data with every column shown
 ```{r}
-glimpse(apinve)
+glimpse(aps_inv)
 ```
 
 # Set column attributes
 
 ```{r}
-# Create a vector of column names that have administrative data as the source
-admin_vars <- apinve %>% 
-  select(1:9, 14:17) %>%  # Choose the appropriate columns in the data frame
-  names()
-#Set source of admin_vars to "Administrative data"
-for(i in admin_vars) {
-  attr(apinve[[i]], "source") <- "Administrative data"
-}
-```
-
-```{r}
-# Create a vector of column names that have APS Investigations data from DETECT Follow-up Interview as the source 
-aps_vars <- apinve %>% 
-  select(10:13, 18) %>% # Choose the variables from the raw data excluding administrative data
+# Set the source to "DETECT Follow-up Interview APS Investigations" for all the variables
+aps_vars <- aps_inv %>% 
+  select(1:22)%>% 
   names()
 
 for(i in aps_vars) {
-  attr(apinve[[i]], "source") <- "DETECT Follow-up Interview APS Investigations"
-}
-
-# Create a vector of column names that have the same source, in this case recoded factor variables
-factor_vars <- apinve %>% 
-  select(19:26) %>%  #Choose the recoded variables
-  names()
-
-for(i in factor_vars) {
-  attr(apinve[[i]], "source") <- "Recoded from raw data"
+  attr(aps_inv[[i]], "source") <- "DETECT Follow-up Interview APS Investigations"
 }
 ```
 
 ```{r}
 # Add column attributes to all variables
-apinve <- apinve %>%
+aps_inv <- aps_inv %>%
       cb_add_col_attributes( 
       x_primary_key, 
       description = "Unique identifier for record"
@@ -120,12 +97,12 @@ apinve <- apinve %>%
       description = "Comments by interviewer"
     ) %>%
   
-      cb_add_col_attributes( 
-      xc_case_i_d, 
+    cb_add_col_attributes( 
+      xc_case_id, 
       description = "Unique case ID"
     ) %>%
   
-        cb_add_col_attributes( 
+    cb_add_col_attributes( 
       xc_lead_panel_summary_count, 
       description = "Count of lead panel summaries for older adult"
     ) %>%
@@ -141,31 +118,9 @@ apinve <- apinve %>%
     ) %>%
   
     cb_add_col_attributes( 
-      aps_report, 
-      description  = "AI_1. Has anyone from Adult Protective Services ever attempted to investigate whether or not you were living with elder abuse or neglect?", 
-      skip_pattern = "Skip to section 6 if any answer is given but Yes"
-    ) %>%
-  
-    cb_add_col_attributes( 
-      aps_times, 
-      description  = "AI_2. How many times has this happened in your life?",
-      skip_pattern = "If answer is 0 or Refused, go to Section 6. If answer is 1 go to AI_4."
-    ) %>%
-  
-    cb_add_col_attributes( 
-      aps_first, 
-      description  = "AI_3. When was the first time APS attempted to do an investigation?",
-      skip_pattern = "If answer is Refused, go to Section 6."
-    ) %>%
-  
-    cb_add_col_attributes( 
-      aps_recent, 
-      description = "AI_4. When was the most recent time APS attempted to do an investigation?"
-    ) %>%
-  
-    cb_add_col_attributes( 
       aps_report_4cat, 
-      description  = "Recoded variable aps_report to match levels in follow-up interview protocol",
+      description  = "AI_1. Has anyone from Adult Protective Services ever attempted to investigate whether or not you were living with elder abuse or neglect?",
+      skip_pattern = "Skip to section 6 if any answer is given but Yes",
       value_labels = c(
         "Yes"        = 1, 
         "No"         = 2, 
@@ -177,12 +132,14 @@ apinve <- apinve %>%
   
     cb_add_col_attributes( 
       aps_report_4cat_f, 
-      description = "Recoded variable aps_report as a factor variable"
+      description = "AI_1. Has anyone from Adult Protective Services ever attempted to investigate whether or not you were living with elder abuse or neglect?",
+            skip_pattern = "Skip to section 6 if any answer is given but Yes"
     ) %>%
   
     cb_add_col_attributes(
       aps_times_5cat, 
-      description = "Recoded variable aps_times to match levels in follow-up interview protocol",
+      description  = "AI_2. How many times has this happened in your life?",
+      skip_pattern = "If answer is 0 or Refused, go to Section 6. If answer is 1 go to AI_4.",
       value_labels = c(
         "0"          = 0, 
         "1"          = 1, 
@@ -194,12 +151,13 @@ apinve <- apinve %>%
   
     cb_add_col_attributes( 
       aps_times_5cat_f, 
-      description = "Recoded variable aps_times as a factor variable"
+      description = "AI_2. How many times has this happened in your life?",
+      skip_pattern = "If answer is 0 or Refused, go to Section 6. If answer is 1 go to AI_4."
     ) %>%
   
     cb_add_col_attributes( 
       aps_first_8cat, 
-      description = "Recoded variable aps_first to match levels in follow-up interview protocol",
+      description = "When was the first time APS attempted to do an investigation?",
       value_labels = c(
         "10 or more years ago"                       = 1, 
         "5-10 years ago"                             = 2, 
@@ -215,12 +173,12 @@ apinve <- apinve %>%
   
     cb_add_col_attributes( 
       aps_first_8cat_f, 
-      description = "Recoded variable aps_first as a factor variable"
+      description = "When was the first time APS attempted to do an investigation?"
     ) %>%
   
     cb_add_col_attributes( 
       aps_recent_8cat, 
-      description = "Recoded variable aps_recent to match levels in follow-up interview protocol",
+      description = "AI_4. When was the most recent time APS attempted to do an investigation?",
       value_labels = c(
         "In the past week"                           = 1, 
         "In the past month"                          = 2,
@@ -236,7 +194,7 @@ apinve <- apinve %>%
   
     cb_add_col_attributes( 
       aps_recent_8cat_f, 
-      description = "Recoded variable aps_recent as a factor variable"
+      description = "AI_4. When was the most recent time APS attempted to do an investigation?"
     )
 ```
 
@@ -244,8 +202,8 @@ apinve <- apinve %>%
 
 ```{r}
 #Create a vector of variables to exclude summary statistics from
-no_stats <- apinve %>%
-  select(1:9, 14:17)
+no_stats <- aps_inv %>%
+  select(1:14)
 
 no_stats_vars <- colnames(no_stats)
 
@@ -256,10 +214,11 @@ no_stats_vars <- colnames(no_stats)
 ```{r}
 #Add title, subtitle and description while excluding summary statistics for the specified variables
 aps_codebook <- codebook(
-  df = apinve,
-  title = "Codebook ",
+  df = aps_inv,
+  title = "Codebook",
   subtitle = "APS Investigation Dataset",
-  description = "Data collected during DETECT follow-up interviews regarding visits the patient may have had from Adult Protective Services", no_summary_stats = no_stats_vars 
+  description = "Data collected during DETECT follow-up interviews regarding visits the patient may have had from Adult Protective Services", 
+  no_summary_stats = no_stats_vars 
 )
 ```
 
