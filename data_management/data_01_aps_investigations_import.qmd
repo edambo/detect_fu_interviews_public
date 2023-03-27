@@ -18,11 +18,13 @@ library(tidyverse)
 Load the data tables into the global environment as data frames. We will create categorical variables with numerical values that match the codebook and also create a factor variable for each categorical variable in the data frame to be used for analysis.
 
 ```{r}
-apinve<- a_p_s_investigations
+aps_inv<- a_p_s_investigations
 ```
 
+## Clean up data
+### Convert all variable names to snake case
+
 ```{r}
-# Convert all variable names to snake case
 walk(
   # Grab the names of all data frames in the global environment
   .x = ls()[map_lgl(ls(), ~ is.data.frame(get(.)))],
@@ -45,9 +47,10 @@ walk(
 )
 ```
 
-
+### Create recoded variables to match levels in follow-up interview protocol
 ```{r}
-apinve <- apinve %>%
+#Create recoded variables for aps_report
+aps_inv <- aps_inv %>%
   mutate(
     aps_report_4cat = case_when(
       aps_report == "Yes"        ~ 1,
@@ -63,7 +66,8 @@ apinve <- apinve %>%
 ```
 
 ```{r}
-apinve <- apinve %>%
+#Create recoded variables for aps_times
+aps_inv <- aps_inv %>%
   mutate(
     aps_times_5cat = case_when(
       aps_times == "0"          ~ 0,
@@ -80,7 +84,8 @@ apinve <- apinve %>%
 ```
 
 ```{r}
-apinve <- apinve %>%
+#Create recoded variables for aps_first
+aps_inv <- aps_inv %>%
   mutate(
     aps_first_8cat = case_when(
       aps_first == "10 or more years ago"                       ~ 1,
@@ -100,7 +105,8 @@ apinve <- apinve %>%
 ```
 
 ```{r}
-apinve <- apinve %>%
+#Create recoded variables for aps_recent
+aps_inv <- aps_inv %>%
   mutate(
     aps_recent_8cat = case_when(
       aps_recent == "In the past week" ~ 1,
@@ -119,9 +125,19 @@ apinve <- apinve %>%
     )
 ```
 
-#### Save as rds file
+### Remove raw variables that have recoded forms
+```{r}
+aps_inv<-aps_inv%>%select(-c(aps_report, aps_times, aps_first, aps_recent))
+```
+
+### Change column name
+```{r}
+colnames(aps_inv)[13]  <- "xc_case_id"
+```
+
+### Save as rds file
 
 ```{r}
-  saveRDS(apinve, "aps_investigations_import.rds")
+  saveRDS(aps_inv, "aps_investigations_import.rds")
 ```
 
