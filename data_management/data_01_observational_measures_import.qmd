@@ -46,28 +46,43 @@ walk(
 
 ```
 
+### Re-order column variables to match organization in DETECT Follow-up Interview Instruments Version 1
 
-#### Detection of Elder abuse Through Emergency Care Technicians (DETECT) Screening Items
 ```{r}
-observational_measures <- observational_measures %>%
+col_order <- c(1:7, 66, 67, 83:89, 104:107, 51:65, 9, 11, 13, 8, 14, 15, 16:19, 80:81, 20:25, 12, 26, 10, 27:30, 31:35, 36:38, 73, 39:43, 68, 44:47, 69, 48, 49, 50, 74:77, 70:72, 78, 79, 82, 90:103)
+obs_meas <- observational_measures[, col_order]
+```
+
+### Change column name
+
+```{r}
+colnames(obs_meas)[16]  <- "xc_case_id"
+```
+
+## Create factor variables to match levels in follow-up interview protocol
+### Detection of Elder abuse Through Emergency Care Technicians (DETECT) Screening Items
+```{r}
+obs_meas <- obs_meas %>%
   mutate(
     across(
-      .cols  = ("unusual_odor": "report_elder_abuse" ),
-      .fns   = ~ factor(.x),
+      .cols  = ("unusual_odor": "hoarding_medications" ),
+      .fns   = ~ factor(.x, levels= c("Yes", "No", "No caregiver present", "Unable to assess", "Did not enter patient’s home")),
       .names = "{col}_f"
     )
   )
 ```
 
-#### Elder Assessment Instrument (EAI) / Self-neglect Severity Scale
+### Elder Assessment Instrument (EAI) / Self-neglect Severity Scale
 
 #### General Assessment
 ```{r}
-observational_measures <- observational_measures %>%
+# Hygeine to skin integrity
+obs_meas <- obs_meas %>%
   mutate(
     across(
       .cols  = ("hygiene": "skin_integrity" ),
-      .fns   = ~ factor(.x),
+      .fns   = ~ factor(.x, levels = c("Very good", "Good", "Poor", "Very poor", "Unable to
+assess")),
       .names = "{col}_f"
     )
   )
@@ -75,7 +90,8 @@ observational_measures <- observational_measures %>%
 ```
 
 ```{r}
-observational_measures <- observational_measures %>%
+# Clothes
+obs_meas <- obs_meas %>%
   mutate(
     clothes_5cat = case_when(
       clothes == "0 - Clean/neat"  ~ 0,
@@ -87,6 +103,7 @@ observational_measures <- observational_measures %>%
     clothes_5cat_f = factor(
       clothes,
       levels = c("0 - Clean/neat", 1, 2, 3, "4 - Very soiled")),
+# Hair
     hair_5cat = case_when(
       hair == "0 - Clean/combed" ~ 0,
       hair == "1"                ~ 1,
@@ -97,6 +114,7 @@ observational_measures <- observational_measures %>%
     hair_5cat_f = factor(
       hair,
       levels = c("0 - Clean/combed", 1, 2, 3, "4 - Matted/dirty")),
+# Nails
     nails_5cat = case_when(
       nails == "0 - Clean/trimmed"        ~ 0,
       nails == "1"                        ~ 1,
@@ -112,34 +130,20 @@ observational_measures <- observational_measures %>%
 
 #### Possible Abuse, Neglect, Exploitation and Abandonment Indicators
 ```{r}
-observational_measures <- observational_measures %>%
+obs_meas <- obs_meas %>%
   mutate(
     across(
-      .cols  = ("bruising": "abuse_statement"),
-      .fns   = ~ factor(.x),
-      .names = "{col}_f"
-    ),
-    across(
-      .cols  = ("contracture": "neglect_statement"),
-      .fns   = ~ factor(.x),
-      .names = "{col}_f"
-    ),
-    across(
-      .cols  = ("money_misuse": "exploitation_statement"),
-      .fns   = ~ factor(.x),
-      .names = "{col}_f"
-    ),
-    across(
-      .cols  = ("caretaker_withdrawn_care": "abandonment_statement"),
-      .fns   = ~ factor(.x),
+      .cols  = ("bruising": "abandonment_statement"),
+      .fns   = ~ factor(.x, levels = c("No evidence", "Possible Evidence", "Probable evidence", "Definite evidence", "Unable to assess")),
       .names = "{col}_f"
     )
   )
 ```
 
-#### Environmental Status of Subject
+### Environmental Status of Subject
 ```{r}
-observational_measures <- observational_measures %>%
+# Exterior Condition
+obs_meas <- obs_meas %>%
   mutate(
     exterior_condition_5cat = case_when(
       exterior_condition == "0 - Neat/well kept/no trash, debris"       ~ 0,
@@ -152,6 +156,7 @@ observational_measures <- observational_measures %>%
       exterior_condition,
       levels = c("0 - Neat/well kept/no trash, debris", 1, 2, 3, 
                  "4 - Poorly maintained/trash, other debris")),
+# Yard/ Sidewalk
     yard_sidewalk_5cat = case_when(
       yard_sidewalk == "0 - Neat/well kept/no trash, debris" ~ 0,
       yard_sidewalk == "1"                                   ~ 1,
@@ -163,6 +168,7 @@ observational_measures <- observational_measures %>%
       yard_sidewalk,
       levels = c("0 - Neat/well kept/no trash, debris", 1, 2, 3, 
                  "4 - Poorly maintained/trash, debris")),
+# Roof
     roof_5cat = case_when(
       roof == "0 - Intact/no structural damage"          ~ 0,
       roof == "1"                                        ~ 1,
@@ -174,6 +180,7 @@ observational_measures <- observational_measures %>%
       roof,
       levels = c("0 - Intact/no structural damage", 1, 2, 3, 
                  "4 - Dilapidated/poorly maintained, holes")),
+# Walls
     walls_5cat = case_when(
       walls == "0 - Intact/no structural damage"          ~ 0,
       walls == "1"                                        ~ 1,
@@ -185,6 +192,7 @@ observational_measures <- observational_measures %>%
       walls,
       levels = c("0 - Intact/no structural damage", 1, 2, 3, 
                  "4 - Dilapidated/poorly maintained, holes")),
+# Windows
     windows_5cat = case_when(
       windows == "0 - Intact/not broken or missing"     ~ 0,
       windows == "1"                                    ~ 1,
@@ -196,6 +204,7 @@ observational_measures <- observational_measures %>%
       windows,
       levels = c("0 - Intact/not broken or missing", 1, 2, 3, 
                  "4 - Multiple sections broken/missing")),
+# Interior condition
       interior_condition_5cat = case_when(
       interior_condition == "0 - Intact/not broken or missing"     ~ 0,
       interior_condition == "1"                                    ~ 1,
@@ -207,6 +216,7 @@ observational_measures <- observational_measures %>%
       interior_condition,
       levels = c("0 - Intact/not broken or missing", 1, 2, 3, 
                  "4 - Multiple sections broken/missing")),
+# Odor
       odor_5cat = case_when(
       windows == "0 - Normal household odor"                                              ~ 0,
       windows == "1"                                                                      ~ 1,
@@ -218,6 +228,8 @@ observational_measures <- observational_measures %>%
       odor,
       levels = c("0 - Normal household odor", 1, 2, 3, 
                  "4 - Pungent, unpleasant odor (may be human/animal waste, rotting food)")),
+# Cleanliness
+## Kitchen
     kitchen_cleanliness_5cat = case_when(
       kitchen_cleanliness == "0 - Clean, no evidence of unsanitary conditions" ~ 0,
       kitchen_cleanliness == "1"                                               ~ 1,
@@ -229,6 +241,7 @@ observational_measures <- observational_measures %>%
       kitchen_cleanliness,
       levels = c("0 - Clean, no evidence of unsanitary conditions", 1, 2, 3, 
                  "4 - Very dirty, unwashed dishes, trash litter")),
+## Bathroom
     bathroom_cleanliness_5cat = case_when(
       bathroom_cleanliness == "0 - Clean, no evidence of unsanitary conditions"  ~ 0,
       bathroom_cleanliness == "1"                                                ~ 1,
@@ -240,6 +253,7 @@ observational_measures <- observational_measures %>%
       bathroom_cleanliness,
       levels = c("0 - Clean, no evidence of unsanitary conditions", 1, 2, 3, 
                  "4 - Very dirty, unwashed dishes, trash litter")),
+## Bedroom
     bedroom_cleanliness_5cat = case_when(
       bedroom_cleanliness == "0 - Clean, no evidence of unsanitary conditions" ~ 0,
       bedroom_cleanliness == "1"                                               ~ 1,
@@ -251,6 +265,7 @@ observational_measures <- observational_measures %>%
       bedroom_cleanliness,
       levels = c("0 - Clean, no evidence of unsanitary conditions", 1, 2, 3, 
                  "4 - Very dirty, unwashed dishes, trash litter")),
+## Living room
     living_room_cleanliness_5cat = case_when(
       living_room_cleanliness == "0 - Clean, no evidence of unsanitary conditions" ~ 0,
       living_room_cleanliness == "1"                                               ~ 1,
@@ -262,6 +277,7 @@ observational_measures <- observational_measures %>%
       living_room_cleanliness,
       levels = c("0 - Clean, no evidence of unsanitary conditions", 1, 2, 3, 
                  "4 - Very dirty, unwashed dishes, trash litter")),
+# Clutter
     clutter_5cat = case_when(
       clutter == "0 - Neat/orderly"                                             ~ 0,
       clutter == "1"                                                            ~ 1,
@@ -273,6 +289,7 @@ observational_measures <- observational_measures %>%
       clutter,
       levels = c("0 - Neat/orderly", 1, 2, 3, 
                  "4 - Very cluttered/difficult to move around or find things")),
+# Structural problems
     structural_problems_5cat = case_when(
       structural_problems == "0 - No structural problems" ~ 0,
       structural_problems == "1"                          ~ 1,
@@ -284,6 +301,7 @@ observational_measures <- observational_measures %>%
       structural_problems,
       levels = c("0 - No structural problems", 1, 2, 3, 
                  "4 - Severe structural damage (e.g., holes in sheetrock, floor leaking, ceiling")),
+# Pets
       pets_5cat = case_when(
       pets == "0 - All animals cared for"    ~ 0,
       pets == "1 or 2 - Uncared animals"     ~ 1,
@@ -296,6 +314,7 @@ observational_measures <- observational_measures %>%
       levels = c("0 - All animals cared for", "1 or 2 - Uncared animals", 
                  "3 or 4 - Uncared animals", "5 or 6 - Uncared animals", 
                  "6 or more - Uncared animals")),
+# Utilities
     utilities_5cat = case_when(
       utilities == "0 - All utilities work"             ~ 0,
       utilities == "1 - No phone"                       ~ 1,
@@ -314,33 +333,21 @@ observational_measures <- observational_measures %>%
 
 ```
 
-#### Summary 
+### Summary 
 ```{r}
-observational_measures <- observational_measures %>%
+obs_meas <- obs_meas %>%
   mutate(
     across(
       .cols  = ("summary_evidence_abuse": "summary_evidence_abandonment"),
-      .fns   = ~ factor(.x),
+      .fns   = ~ factor(.x, levels = c("No evidence", "Possible Evidence", "Probable evidence", "Definite evidence", "Unable to assess")),
       .names = "{col}_f"
     )
   )
 ```
 
-#### APS report
+### Medic EM Assessment Variables
 ```{r}
-observational_measures <- observational_measures %>%
-  mutate(
-    aps_reported_f = factor(
-    aps_reported),
-    aps_reported_method_f = factor(
-      aps_reported_method
-    )
-)
-```
-
-#### Medic EM Assessment Variables
-```{r}
-observational_measures <- observational_measures %>%
+obs_meas <- obs_meas %>%
   mutate(
     across(
       .cols = starts_with("at") & !ends_with("why"),
@@ -361,9 +368,30 @@ observational_measures <- observational_measures %>%
   )
 ```
 
+#### APS report and C Detect Status
+
+```{r}
+obs_meas <- obs_meas %>%
+  mutate(
+    aps_reported_f = factor(
+    aps_reported),
+    aps_reported_method_f = factor(
+      aps_reported_method),
+    c_detect_status_f = factor(
+      c_detect_status)    
+  )
+```
+
+### Remove raw variables that have recoded forms and move a column
+
+```{r}
+obs_meas<-obs_meas%>%select(-c(13,15,20:87,94,96,98,100,102,104,106))
+obs_meas<-obs_meas %>% relocate(aps_reported_confirmation_number, .after=aps_reported_method_f)
+```
+
 #### Save as rds file
 
 ```{r}
-  saveRDS(observational_measures, "observational_measures.rds")
+  saveRDS(obs_meas, "observational_measures_import.rds")
 
 ```
