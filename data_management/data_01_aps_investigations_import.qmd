@@ -1,0 +1,143 @@
+---
+title: "data_01_aps_investigations_import.qmd"
+execute:
+  echo: false
+format: html
+---
+
+
+```{r, message= FALSE}
+# Load all necessary libraries
+library(readr)
+library(purrr)
+library(stringr)
+library(tidyverse)
+```
+## Load data
+
+Load the data tables into the global environment as data frames. We will create categorical variables with numerical values that match the codebook and also create a factor variable for each categorical variable in the data frame to be used for analysis.
+
+```{r}
+aps_inv<- a_p_s_investigations
+```
+
+## Clean up data
+### Convert all variable names to snake case
+
+```{r}
+walk(
+  # Grab the names of all data frames in the global environment
+  .x = ls()[map_lgl(ls(), ~ is.data.frame(get(.)))],
+  .f = function(x) {
+    # Grab individual df from environment
+    df <- get(x)
+    # Grab the variables names
+    var_names <- names(df)
+    # Convert variable names to snake case
+    var_names <- str_replace_all(var_names, '(\\B)([A-Z])', '_\\2')
+    # Convert variable names to lower case
+    var_names <- str_to_lower(var_names)
+    # Fix medstar_id
+    var_names[var_names == "medstar_i_d"] <- "medstar_id"
+    # assign back to the dataframe
+    names(df) <- var_names
+    # Replace df with new names in global environment
+    assign(x, df, envir = .GlobalEnv)
+  }
+)
+```
+
+### Create recoded variables to match levels in follow-up interview protocol
+```{r}
+#Create recoded variables for aps_report
+aps_inv <- aps_inv %>%
+  mutate(
+    aps_report_4cat = case_when(
+      aps_report == "Yes"        ~ 1,
+      aps_report == "No"         ~ 2,
+      aps_report == "Don't know" ~ 7,
+      aps_report == "Refused"    ~ 9
+    ),
+    aps_report_4cat_f = factor(
+      aps_report,
+      levels = c("Yes", "No", "Don't know", "Refused")
+      )
+  )
+```
+
+```{r}
+#Create recoded variables for aps_times
+aps_inv <- aps_inv %>%
+  mutate(
+    aps_times_5cat = case_when(
+      aps_times == "0"          ~ 0,
+      aps_times == "1"          ~ 1,
+      aps_times == "2+"         ~ 2,
+      aps_times == "Don't know" ~ 7,
+      aps_times == "Refused"    ~ 9
+    ),
+    aps_times_5cat_f = factor(
+      aps_times,
+      levels = c("0", "1", "2+", "Don't know", "Refused")
+      )
+  )
+```
+
+```{r}
+#Create recoded variables for aps_first
+aps_inv <- aps_inv %>%
+  mutate(
+    aps_first_8cat = case_when(
+      aps_first == "10 or more years ago"                       ~ 1,
+      aps_first == "5-10 years ago"                             ~ 2,
+      aps_first == "1-5 years ago"                              ~ 3,
+      aps_first == "In the past year but more than a month ago" ~ 4,
+      aps_first == "In the past month"                          ~ 5,
+      aps_first == "In the past week"                           ~ 6,
+      aps_first == "Don't know"                                 ~ 7,
+      aps_first == "Refused"                                    ~ 9
+    ),
+    aps_first_8cat_f = factor(
+      aps_first,
+      levels = c("10 or more years ago", "5-10 years ago", "1-5 years ago", "In the past year but more than a month ago", "In the past month" , "In the past week", "Don't know", "Refused")
+      )
+  )
+```
+
+```{r}
+#Create recoded variables for aps_recent
+aps_inv <- aps_inv %>%
+  mutate(
+    aps_recent_8cat = case_when(
+      aps_recent == "In the past week" ~ 1,
+      aps_recent == "In the past month" ~ 2,
+      aps_recent == "In the past year but more than a month ago" ~ 3,
+      aps_recent == "1-5 years ago" ~ 4,
+      aps_recent == "5-10 years ago" ~ 5, 
+      aps_recent == "10 or more years ago" ~ 6,
+      aps_recent == "Don’t know" ~ 7,
+      aps_recent == "Refused" ~ 9
+    ),
+    aps_recent_8cat_f = factor(
+      aps_recent,
+      levels = c("In the past week", "In the past month", "In the past year but more than a month ago", "1-5 years ago", "5-10 years ago", "10 or more years ago", "Don’t know", "Refused")
+      )
+    )
+```
+
+### Remove raw variables that have recoded forms
+```{r}
+aps_inv<-aps_inv%>%select(-c(aps_report, aps_times, aps_first, aps_recent))
+```
+
+### Change column name
+```{r}
+colnames(aps_inv)[13]  <- "xc_case_id"
+```
+
+### Save as rds file
+
+```{r}
+  saveRDS(aps_inv, "aps_investigations_import.rds")
+```
+
