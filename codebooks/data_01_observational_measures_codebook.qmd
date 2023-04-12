@@ -49,7 +49,7 @@ no_stats_vars <- colnames(no_stats)
 observational_measures <- obs %>%
     cb_add_col_attributes( 
       x_primary_key, 
-      description = "Unique identifier for record"
+      description = "Unique record ID used internally by the database"
     ) %>%
   
     cb_add_col_attributes( 
@@ -113,22 +113,22 @@ observational_measures <- obs %>%
   
      cb_add_col_attributes( 
       xc_case_id, 
-      description = ""
+      description = "Calculated by the database from the last 5 characters of the MedstarID"
     ) %>%
   
      cb_add_col_attributes( 
       xc_lead_panel_summary_count, 
-      description = ""
+      description = "Calculated count of positive abuse instances across SelfReport, ApsInvestigations, and ObservationalMeasures"
      ) %>%
   
      cb_add_col_attributes( 
        xc_lead_panel_summary_comment_count, 
-       description = ""
+       description = "Calculated count of comments on positive abuse instances across SelfReport, ApsInvestigations, and ObservationalMeasures comments"
      ) %>%
     
      cb_add_col_attributes( 
        xc_lead_panel_summary, 
-       description = ""
+       description = "Summary of positive abuse instances across SelfReport, ApsInvestigations, and ObservationalMeasures"
      ) %>%
   
     cb_add_col_attributes( 
@@ -835,5 +835,5 @@ obs_meas_codebook <- codebook(
 ```
 
 ```{r}
-print(obs_meas_codebook, "data_01_observational_meansures_codebook.docx")
+print(obs_meas_codebook, "data_01_observational_measures_codebook.docx")
 ```
