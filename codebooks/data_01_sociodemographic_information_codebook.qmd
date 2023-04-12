@@ -1,5 +1,5 @@
 ---
-title: "data_01_sociodemographoc_information_codebook"
+title: "data_01_sociodemographic_information_codebook"
 format: html
 ---
 
@@ -47,7 +47,7 @@ no_stats_vars <- colnames(no_stats)
 sociodemographic_information <- socdem %>%
     cb_add_col_attributes( 
       x_primary_key, 
-      description = "unique record id"
+      description = "Unique record ID used internally by the database"
     ) %>%
   
     cb_add_col_attributes( 
@@ -111,7 +111,7 @@ sociodemographic_information <- socdem %>%
 
     cb_add_col_attributes( 
       xc_case_id, 
-      description = ""
+      description = "Calculated by the database from the last 5 characters of the MedstarID"
     ) %>%
   
     cb_add_col_attributes( 
@@ -356,9 +356,9 @@ sociodemographic_information <- socdem %>%
       sode_people_3cat, 
       description = "SI_1. Including you how many people live in this household?",
       value_labels = c(
-        "Number 1 to 9+"  ~ "1-9",
-        "Don't know"      ~ "77",
-        "Refused"         ~ "99"
+        "Number 1 to 9+"  = 1:9,
+        "Don't know"      = 77,
+        "Refused"         = 99
       )
     ) %>%
   
@@ -381,7 +381,7 @@ socdem_codebook <- codebook(
 ```
 
 ```{r}
-print(socdem_codebook, "sociodemographic_information_codebook.docx")
+print(socdem_codebook, "data_01_sociodemographic_information_codebook.docx")
 ```
 
 

@@ -34,6 +34,7 @@ for(i in sr_vars) {
   attr(sr[[i]], "source") <- "DETECT Follow-up Interview Questions - Self Report"
 }
 ```
+
 ```{r}
 # Choose variables that will not have summary statistics
 no_stats <- sr %>%
@@ -49,57 +50,57 @@ self_report <- sr %>%
   
   cb_add_col_attributes( 
       x_created_by, 
-      description = ""
+      description = "Person who created the record"
     ) %>%
   
     cb_add_col_attributes( 
       x_created_timestamp, 
-      description = ""
+      description = "Timestamp when the record was created"
     ) %>%
   
     cb_add_col_attributes( 
       x_modified_by, 
-      description = ""
+      description = "Person who modified the record"
     ) %>%
   
     cb_add_col_attributes( 
       x_modified_timestamp, 
-      description = ""
+      description = "Timestamp when the record was modified"
     ) %>%
   
     cb_add_col_attributes( 
       x_error_message, 
-      description = ""
+      description = "Error message entered by research team"
     ) %>%
   
     cb_add_col_attributes( 
       x_record_month, 
-      description = ""
+      description = "Month record was created"
     ) %>%
   
     cb_add_col_attributes( 
       x_record_year, 
-      description = ""
+      description = "Year record was created"
     ) %>%
   
     cb_add_col_attributes( 
       x_record_status, 
-      description = ""
+      description = "Status of the record as determined by research team"
     ) %>%
   
     cb_add_col_attributes( 
       x_record_comment, 
-      description = ""
+      description = "Comments by interviewer"
     ) %>%
   
     cb_add_col_attributes( 
       medstar_id, 
-      description = ""
+      description = "Unique record number in MedStar System"
     ) %>%
   
     cb_add_col_attributes( 
       name_full, 
-      description = ""
+      description = "Full name of older individual"
     ) %>%
   
 
@@ -699,7 +700,7 @@ self_report <- sr %>%
     cb_add_col_attributes( 
       finance_person_permission_4cat_f, 
       description = "SR_10. Does that person usually ask for your permission before deciding to spend your money or sell your property?",
-      skip_pattern - "If 'No', go to SR_10a. All other answers, go to SR_11"
+      skip_pattern = "If 'No', go to SR_10a. All other answers, go to SR_11"
     ) %>%
   
     cb_add_col_attributes( 
@@ -821,7 +822,7 @@ self_report <- sr %>%
       ),
       col_type = "Categorical"
     ) %>%
-  
+
     cb_add_col_attributes( 
       finance_person_forged_last_time_8cat, 
       description = "SR_13b. When was the last time that person forged your signature without your permission in order to sell your property or to get money from your accounts?",
@@ -1763,7 +1764,7 @@ self_report <- sr %>%
       ),
       col_type = "Categorical"
     ) %>%
-  
+   
     cb_add_col_attributes( 
       physical_hurt65_4cat, 
       description = "Were you age 65 or older the last time (most recent time) this happened?",
@@ -2126,7 +2127,7 @@ cb_add_col_attributes(
       ),
       col_type = "Categorical"
     ) %>%
-  
+
     cb_add_col_attributes( 
       sexual_touched_4cat, 
       description = "SR_50a. Females- Has anyone ever touched your breasts or pubic area or made you touch his penis by using force or threat of force? Males - Has anyone ever touched your pubic area or made you touch their pubic area by using force or threat of force?",
@@ -2286,7 +2287,7 @@ cb_add_col_attributes(
       ),
       col_type = "Categorical"
     ) %>%
-  
+
     cb_add_col_attributes( 
       sexual_person_no_live_4cat, 
       description = "SR_64. Would you be able to live on your own if that person no longer lived with you?",
@@ -2539,7 +2540,7 @@ cb_add_col_attributes(
       ),
       col_type = "Categorical"
     ) %>%
-  
+
     cb_add_col_attributes( 
       sexual_forced_last_time_8cat, 
       description = "SR_49d. How long ago was the last time (most recent time) this happened?",
@@ -2636,7 +2637,7 @@ cb_add_col_attributes(
       ),
       col_type = "Categorical"
     ) %>%
-  
+ 
     cb_add_col_attributes( 
       sexual_picture_times_7cat, 
       description = "SR_51b. About how many times has this happened to you in your lifetime?",
@@ -3048,7 +3049,7 @@ cb_add_col_attributes(
       finance_stranger_forged_age_years, 
       description = "Question from earlier version of the follow-up interview"
     ) %>%
-  
+   
       cb_add_col_attributes( 
       finance_stranger_tricked_times_times, 
       description = "Question from earlier version of the follow-up interview"
@@ -3088,35 +3089,35 @@ cb_add_col_attributes(
       fear_important_response, 
       description = "FNW_5. What is the single most important thing that someone outside of your friends and family could do to benefit your quality of life right now? [open ended]"
     ) %>%
- 
-    cb_add_col_attributes( 
-      xc_emotional_list, 
-      description = ""
-    ) %>% 
 
     cb_add_col_attributes( 
+      xc_emotional_list, 
+      description = "Calculated comma-separated list of the selected emotional mistreatment that the participant reported; used internally by the database to display a customized follow-up question to the participant"
+    ) %>% 
+ 
+    cb_add_col_attributes( 
       xc_physical_list, 
-      description = ""
+      description = "Calculated comma-separated list of the selected physical mistreatment that the participant reported; used internally by the database to display a customized follow-up question to the participant"
     ) %>% 
 
     cb_add_col_attributes( 
       xc_sexual_list, 
-      description = ""
+      description = "Calculated comma-separated list of the selected sexual mistreatment that the participant reported; used internally by the database to display a customized follow-up question to the participant"
     ) %>%
 
     cb_add_col_attributes( 
       xc_case_id, 
-      description = ""
+      description = "Calculated by the database from the last 5 characters of the MedstarID"
     ) %>% 
 
     cb_add_col_attributes( 
-      xc_primary_key, 
-      description = ""
+      x_primary_key, 
+      description = "unique record id"
     ) %>%   
 
     cb_add_col_attributes( 
       xc_lead_panel_summary_count, 
-      description = ""
+      description = "Calculated count of positive abuse instances across SelfReport, ApsInvestigations, and ObservationalMeasures"
     )   
 ```
 
