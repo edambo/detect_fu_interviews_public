@@ -45,7 +45,7 @@ for(i in clutter_scale_vars) {
 clutter_scale <- clutter_scale %>%
     cb_add_col_attributes( 
       x_primary_key, 
-      description = "Unique identifier for record"
+      description = "Unique record ID used internally by the database"
     ) %>%
   
     cb_add_col_attributes( 
@@ -114,7 +114,7 @@ clutter_scale <- clutter_scale %>%
   
     cb_add_col_attributes( 
       xc_case_id, 
-      description = "Unique case ID"
+      description = "Calculated by the database from the last 5 characters of the MedstarID"
     ) %>%
   
     cb_add_col_attributes( 

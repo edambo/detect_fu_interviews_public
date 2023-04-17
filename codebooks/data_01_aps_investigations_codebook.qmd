@@ -45,7 +45,7 @@ for(i in aps_vars) {
 aps_inv <- aps_inv %>%
       cb_add_col_attributes( 
       x_primary_key, 
-      description = "Unique identifier for record"
+      description = "Unique record ID used internally by the database"
     ) %>%
   
     cb_add_col_attributes( 
@@ -99,12 +99,12 @@ aps_inv <- aps_inv %>%
   
     cb_add_col_attributes( 
       xc_case_id, 
-      description = "Unique case ID"
+      description = "Calculated by the database from the last 5 characters of the MedstarID"
     ) %>%
   
     cb_add_col_attributes( 
       xc_lead_panel_summary_count, 
-      description = "Count of lead panel summaries for older adult"
+      description = "Calculated count of positive abuse instances across SelfReport, ApsInvestigations, and ObservationalMeasures"
     ) %>%
   
     cb_add_col_attributes( 
@@ -158,6 +158,7 @@ aps_inv <- aps_inv %>%
     cb_add_col_attributes( 
       aps_first_8cat, 
       description = "When was the first time APS attempted to do an investigation?",
+      skip_pattern = "If answer is Refused, go to Section 6. If answer is 1 to 7, go to AI_4.",
       value_labels = c(
         "10 or more years ago"                       = 1, 
         "5-10 years ago"                             = 2, 
@@ -173,7 +174,8 @@ aps_inv <- aps_inv %>%
   
     cb_add_col_attributes( 
       aps_first_8cat_f, 
-      description = "When was the first time APS attempted to do an investigation?"
+      description = "When was the first time APS attempted to do an investigation?",
+      skip_pattern = "If answer is Refused, go to Section 6. If answer is 1 to 7, go to AI_4."
     ) %>%
   
     cb_add_col_attributes( 
@@ -215,8 +217,7 @@ no_stats_vars <- colnames(no_stats)
 #Add title, subtitle and description while excluding summary statistics for the specified variables
 aps_codebook <- codebook(
   df = aps_inv,
-  title = "Codebook",
-  subtitle = "APS Investigation Dataset",
+  title = "APS Investigation Dataset",
   description = "Data collected during DETECT follow-up interviews regarding visits the patient may have had from Adult Protective Services", 
   no_summary_stats = no_stats_vars 
 )
