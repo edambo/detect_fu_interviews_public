@@ -46,10 +46,16 @@ walk(
 
 ```
 
-Remove unwanted characters and replace with "Don't know"
+### Change column name and position
+
 ```{r}
-self_report <- self_report %>% 
-  mutate_all(str_replace_all, "Don.t know", "Don't know")
+self_rep<-self_report %>% relocate(xc_case_i_d, .after=	x_error_message)
+colnames(self_rep)[8]  <- "xc_case_id"
+self_rep<-self_rep %>% relocate(xc_lead_panel_summary_count, .after=	xc_case_id)	
+self_rep<-self_rep %>% relocate(x_record_month, .after=	xc_lead_panel_summary_count)	
+self_rep<-self_rep %>% relocate(x_record_year, .after=	x_record_month)	
+self_rep<-self_rep %>% relocate(x_record_comment, .after=	x_record_year)	
+
 ```
 
 ## Self-report injury, violence, neglect, and exploitation
@@ -74,7 +80,7 @@ levels_person   <- c("A spouse or partner", "An ex spouse or partner",
 
 ### Neglect variables
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     across(
       .cols = starts_with("neglect") & !ends_with("help") &
@@ -164,7 +170,7 @@ levels_last_time <- c("Less than 1 month ago",
 
 #### Recode categorical variables to factor variables
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     across(
       .cols = starts_with("finance") & !ends_with("years") &
@@ -254,7 +260,7 @@ levels_person_v2 <- c("A stranger", "A spouse or partner", "An ex spouse or part
 #### Recode categorical variables to factor variables
 
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     across(
       .cols = starts_with("emotional") & !ends_with("years") &
@@ -375,7 +381,7 @@ self_report <- self_report %>%
 
 
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     across(
       .cols = starts_with("physical") & !ends_with("years") &
@@ -494,7 +500,7 @@ self_report <- self_report %>%
 #### Recode categorical variables to factor variables
 
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     across(
       .cols = starts_with("sexual") & !ends_with("years") &
@@ -612,7 +618,7 @@ self_report <- self_report %>%
 #### Recode categorical variables to factor variables
 
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     across(
       .cols = starts_with("fear") & !ends_with("response"),
@@ -637,7 +643,7 @@ self_report <- self_report %>%
 #### Recode categorical variables to factor variables
 
 ```{r}
-self_report <- self_report %>%
+self_rep <- self_rep %>%
   mutate(
     report_private_5cat = case_when(
       report_private == "Yes, for the entire time"                     ~ 1,
@@ -665,12 +671,23 @@ self_report <- self_report %>%
 ```
 
 
+### Remove raw character variables that have recoded forms
 
+```{r}
+#keep all variables before and after self_rep[15:209]
+keep_vars <- c(1:14,210:497)
+self_rep1 <- self_rep[, keep_vars]
+
+#keep additional variables within self_rep[15:209] that do not have recoded versions
+more_keep_vars<-self_rep[15:209]%>% select(-c(!matches("age") & !matches("_times_times") & !matches("response") & !matches("xc_") & !matches("finance_stranger_forged_times")))
+self_rep <- cbind(self_rep1,more_keep_vars)
+                          
+```
 
 
 #### Save as rds file
 
 ```{r}
-  saveRDS(self_report, "self_report.rds")
+  saveRDS(self_rep, "self_report_import.rds")
 
 ```

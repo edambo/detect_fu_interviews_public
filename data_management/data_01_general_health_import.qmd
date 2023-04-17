@@ -93,27 +93,6 @@ general_health2 <- general_health2 %>%
 
 #### Medical Outcomes Study
 
-```{r}
-#Create categorical and factor variables for outcomes_health_general
-general_health2 <- general_health2 %>%
-  mutate (
-    outcomes_health_general_7cat = case_when(
-      outcomes_health_general == "Excellent"  ~ 1,
-      outcomes_health_general == "Very good"  ~ 2,
-      outcomes_health_general == "Good"       ~ 3,
-      outcomes_health_general == "Fair"       ~ 4,
-      outcomes_health_general == "Poor"       ~ 5,
-      outcomes_health_general == "Don't know" ~ 7,
-      outcomes_health_general == "Refused"    ~ 9
-    ),
-    outcomes_health_general_7cat_f = factor(
-      outcomes_health_general,
-      levels = c("Excellent", "Very good", "Good", "Fair", "Poor", 
-                 "Don't know", "Refused")
-    )
-  )
-```
-
 
 ```{r}
 #Create categorical and factor variables for variables beginning with "outcomes_health" excluding those that contain "general", "keep" and "unable"
@@ -140,6 +119,28 @@ general_health2 <- general_health2 %>%
     )
   )
 
+```
+
+
+```{r}
+#Create categorical and factor variables for outcomes_health_general
+general_health2 <- general_health2 %>%
+  mutate (
+    outcomes_health_general_7cat = case_when(
+      outcomes_health_general == "Excellent"  ~ 1,
+      outcomes_health_general == "Very good"  ~ 2,
+      outcomes_health_general == "Good"       ~ 3,
+      outcomes_health_general == "Fair"       ~ 4,
+      outcomes_health_general == "Poor"       ~ 5,
+      outcomes_health_general == "Don't know" ~ 7,
+      outcomes_health_general == "Refused"    ~ 9
+    ),
+    outcomes_health_general_7cat_f = factor(
+      outcomes_health_general,
+      levels = c("Excellent", "Very good", "Good", "Fair", "Poor", 
+                 "Don't know", "Refused")
+    )
+  )
 ```
 
 ```{r}
@@ -490,17 +491,18 @@ general_health2 <- general_health2 %>%
   )
 ```
 
-### Remove raw variables that have recoded forms
-
-```{r}
-general_health2<-general_health2%>%select(-c(14:61,63:65))
-```
-
 ### Change column name
 
 ```{r}
-colnames(general_health2)[14]  <- "xc_case_id"
+colnames(general_health2)[62]  <- "xc_case_id"
 ```
+### Remove raw variables that have recoded forms
+
+```{r}
+general_health2<-general_health2%>%select(-c(14:47,49:51, 53:55,59:61,63:65))
+```
+
+
 ## Save as rds file
 
 ```{r}

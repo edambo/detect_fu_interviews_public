@@ -27,7 +27,7 @@ general_health <- readRDS("general_health_import.rds")
 ```{r}
 #Set the source to "DETECT Follow-up Interview General Health" for all the variables
 general_health_vars <- general_health %>% 
-  select(1:110) %>% 
+  select(1:105) %>% 
   names()
 
 for(i in general_health_vars) {
@@ -41,7 +41,7 @@ for(i in general_health_vars) {
 general_health <- general_health %>%
     cb_add_col_attributes( 
       x_primary_key, 
-      description = "Unique identifier for record"
+      description = "Unique record ID used internally by the database"
     ) %>%
   
     cb_add_col_attributes( 
@@ -80,35 +80,10 @@ general_health <- general_health %>%
       name_full, 
       description = "Full name of older individual"
     ) %>%
-  
-    cb_add_col_attributes( 
-      health_bp_systolic, 
-      description = "Vital signs, none recorded"
-    ) %>%
-
-    cb_add_col_attributes( 
-      health_heart, 
-      description = "Vital signs, none recorded"
-    ) %>%
-  
-    cb_add_col_attributes( 
-      health_oxygen, 
-      description = "Vital signs, none recorded"
-    ) %>%
-  
-    cb_add_col_attributes( 
-      health_temp, 
-      description = "Vital signs, none recorded"
-    ) %>%
-  
-    cb_add_col_attributes( 
-      health_pain, 
-      description = "Vital signs, none recorded"
-    ) %>%
 
     cb_add_col_attributes( 
       xc_case_id, 
-      description = "Unique case ID"
+      description = "Calculated by the database from the last 5 characters of the MedstarID"
     ) %>%
   
     cb_add_col_attributes( 
@@ -846,6 +821,7 @@ general_health <- general_health %>%
     cb_add_col_attributes( 
       nesarc_drink_4cat, 
       description = "In your entire life, have you had at least 1 drink of any kind of alcohol, not counting small tastes or sips?",
+      skip_pattern = "If 'Yes', go to Section 3. All other answers, go to NC_2",
       value_labels = c(
         "Yes"        = 1, 
         "No"         = 2,
@@ -858,6 +834,7 @@ general_health <- general_health %>%
     cb_add_col_attributes( 
       nesarc_months_4cat, 
       description = "During the last 12 months, did you have at least 1 drink of any kind of alcohol?",
+      skip_pattern = "If 'Yes', go to Section 3. All other answers, go to AC_1",
       value_labels = c(
         "Yes"        = 1, 
         "No"         = 2,
@@ -869,17 +846,20 @@ general_health <- general_health %>%
   
     cb_add_col_attributes( 
       nesarc_drink_4cat_f, 
-      description = "In your entire life, have you had at least 1 drink of any kind of alcohol, not counting small tastes or sips?"
+      description = "In your entire life, have you had at least 1 drink of any kind of alcohol, not counting small tastes or sips?",
+      skip_pattern = "If 'Yes', go to Section 3. All other answers, go to NC_2"
     ) %>%
   
     cb_add_col_attributes( 
       nesarc_months_4cat_f, 
-      description = "During the last 12 months, did you have at least 1 drink of any kind of alcohol?"
+      description = "During the last 12 months, did you have at least 1 drink of any kind of alcohol?",
+      skip_pattern = "If 'Yes', go to Section 3. All other answers, go to AC_1"
     ) %>%
   
     cb_add_col_attributes( 
       auditc_drink_7cat, 
       description = "How often do you have a drink containing alcohol?",
+      skip_pattern = "If 'Never', go to Section 3. All other answers, go to AC_2",
       value_labels = c(
         "Never"                  = 0, 
         "Monthly or less"        = 1,
@@ -894,7 +874,8 @@ general_health <- general_health %>%
   
     cb_add_col_attributes( 
       auditc_drink_7cat_f, 
-      description = "How often do you have a drink containing alcohol?"
+      description = "How often do you have a drink containing alcohol?",
+      skip_pattern = "If 'Never', go to Section 3. All other answers, go to AC_2"
     ) %>%
 
     cb_add_col_attributes(
@@ -935,6 +916,26 @@ general_health <- general_health %>%
     cb_add_col_attributes( 
       auditc_five_7cat_f, 
       description = "How often do you have five or more drinks on one occasion?"
+    )%>%
+
+      cb_add_col_attributes( 
+      x_record_month, 
+      description = "Month record was created"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_year, 
+      description = "Year record was created"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_status, 
+      description = "Status of the record as determined by research team"
+    ) %>%
+  
+    cb_add_col_attributes( 
+      x_record_comment, 
+      description = "Comments by interviewer"
     )
   
 ```
@@ -944,7 +945,7 @@ general_health <- general_health %>%
 ```{r}
 #Create a vector of variables to exclude summary statistics from
 no_stats <- general_health %>%
-  select(1:14)
+  select(1:13)
 
 no_stats_vars <- colnames(no_stats)
 
