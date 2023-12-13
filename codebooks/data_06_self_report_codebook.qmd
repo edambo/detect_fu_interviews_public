@@ -1,5 +1,6 @@
 ---
-title: "Create Self Report Codebook"
+title: "data_06_self_report_codebook"
+format: html
 ---
 
 ```{r}
@@ -17,7 +18,7 @@ Using the CodebookR package, we will create a data dictionary for follow-up inte
 
 ```{r}
 #| warning: false
-sr <- read_rds("../data/cleaned_rds_files/self_report_import.rds")
+sr <- readRDS("../data/cleaned_rds_files/self_report_import.rds")
 ```
 
 # Set column attributes
@@ -25,6 +26,7 @@ sr <- read_rds("../data/cleaned_rds_files/self_report_import.rds")
 ```{r}
 #Set the source to "DETECT Follow-up Interview Questions Self Report" for all the variables
 sr_vars <- sr %>% 
+  select(1:353) %>% 
   names()
 
 for(i in sr_vars) {
@@ -35,9 +37,7 @@ for(i in sr_vars) {
 ```{r}
 # Choose variables that will not have summary statistics
 no_stats <- sr %>%
-  select(
-    c(matches("^(x|xc)_"), matches("^(name)"), medstar_id, matches("_response$"))
-  )
+  select(1:14,346:353)
 
 no_stats_vars <- colnames(no_stats)
 ```
@@ -3126,5 +3126,5 @@ self_report_codebook <- codebook(
 ```
 
 ```{r}
-print(self_report_codebook, "../codebooks/self_report_codebook.docx")
+print(self_report_codebook, "self_report_codebook.docx")
 ```

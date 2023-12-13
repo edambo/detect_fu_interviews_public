@@ -1,11 +1,13 @@
 ---
-title: "Import Data from FileMaker Pro: Sociodemographic Information"
+title: "data_01_soc_dem_import.qmd"
+format: html
 ---
 
 ```{r, message= FALSE}
 library(readr)
 library(purrr)
 library(stringr)
+library(tidyverse)
 library(expss)
 library(janitor)
 ```
@@ -28,11 +30,6 @@ Here we will convert all variable names to snake case so that everything is unif
 # Convert all variable names to snake case
 
 sociodemographic_information <- clean_names(sociodemographic_information)
-```
-
-```{r}
-# Data check
-dim(sociodemographic_information) # 963  28
 ```
 
 ## Coerce categorical variables to factor variables
@@ -326,17 +323,12 @@ soc_dem <- soc_dem %>% select(-c("sode_marital" : "sode_hispanic", "sode_school"
 ### Re-order columns
 
 ```{r}
-soc_dem <- soc_dem %>% relocate(c("american_indian_or_alaska_native" : "other"), .after = sode_race)
-```
-
-```{r}
-# Data check
-dim(soc_dem) # 963 48
+sociodemographic_information <- soc_dem %>% relocate(c("american_indian_or_alaska_native" : "other"), .after = sode_race)
 ```
 
 # Save as rds file
 
 ```{r}
-write_rds(soc_dem, "../data/cleaned_rds_files/sociodemographic_information_import.rds")
+saveRDS(sociodemographic_information, "sociodemographic_information_import.rds")
 
 ```

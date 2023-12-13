@@ -1,5 +1,6 @@
 ---
-title: "Sociodemographic Information Codebook"
+title: "data_01_sociodemographic_information_codebook"
+format: html
 ---
 
 ```{r}
@@ -16,7 +17,7 @@ Using the CodebookR package, we will create a data dictionary for follow-up inte
 
 ```{r}
 #| warning: false
-socdem <- read_rds("../data/cleaned_rds_files/sociodemographic_information_import.rds")
+socdem <- readRDS("../data/cleaned_rds_files/sociodemographic_information_import.rds")
 ```
 
 # Set column attributes
@@ -24,6 +25,7 @@ socdem <- read_rds("../data/cleaned_rds_files/sociodemographic_information_impor
 ```{r}
 #Set the source to "DETECT Follow-up Interview Questions - Sociodemographic Information" for all the variables
 socdem_vars <- socdem %>% 
+  select(1:42) %>% 
   names()
 
 for(i in socdem_vars) {
@@ -34,9 +36,7 @@ for(i in socdem_vars) {
 ```{r}
 # Choose variables that will not have summary statistics
 no_stats <- socdem %>%
-  select(
-     c(matches("^(x|xc)_"), matches("^(name)"), medstar_id)
-    )
+  select(x_primary_key : name_full, x_record_month : xc_case_id)
 
 no_stats_vars <- colnames(no_stats)
 ```
@@ -411,7 +411,7 @@ socdem_codebook <- codebook(
 ```
 
 ```{r}
-print(socdem_codebook, "../codebooks/sociodemographic_information_codebook.docx")
+print(socdem_codebook, "sociodemographic_information_codebook.docx")
 ```
 
 
